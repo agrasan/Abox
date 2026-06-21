@@ -3,25 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>ASTEROID DODGER | Abox Portal</title>
+    <title>Asteroid Dodger</title>
     <style>
-        body { margin: 0; background: #0b0b14; color: white; font-family: sans-serif; overflow: hidden; display: flex; flex-direction: column; align-items: center; }
-        #game-wrapper { position: relative; width: 95vw; height: 65vh; border: 2px solid #00ffcc; background: #05050a; margin-top: 10px; }
+        body { margin: 0; background: #0b0b14; color: white; font-family: sans-serif; overflow: hidden; display: flex; flex-direction: column; align-items: center; height: 100vh; }
+        #game-wrapper { position: relative; width: 95vw; height: 60vh; border: 2px solid #00ffcc; background: #05050a; margin-top: 10px; }
         canvas { display: block; width: 100%; height: 100%; }
         #controls-layer { width: 95vw; display: flex; justify-content: space-between; align-items: center; padding: 20px 0; }
-        #joystick-base { width: 100px; height: 100px; background: rgba(255,255,255,0.1); border: 2px solid #00ffcc; border-radius: 50%; display: flex; align-items: center; justify-content: center; touch-action: none; }
-        #joystick-thumb { width: 40px; height: 40px; background: #00ffcc; border-radius: 50%; }
+        #joystick-base { width: 80px; height: 80px; background: rgba(255,255,255,0.1); border: 2px solid #00ffcc; border-radius: 50%; display: flex; align-items: center; justify-content: center; touch-action: none; }
+        #joystick-thumb { width: 30px; height: 30px; background: #00ffcc; border-radius: 50%; }
         .btn-group { display: flex; gap: 10px; }
-        button { padding: 15px 20px; font-weight: bold; border-radius: 10px; border: none; }
+        button { padding: 15px 25px; font-weight: bold; border-radius: 10px; border: none; cursor: pointer; }
         #pause-btn { background: #ffcc00; }
         #bomb-btn { background: #ff2e44; color: white; }
     </style>
 </head>
 <body>
 
-<div id="game-wrapper">
-    <canvas id="gameCanvas"></canvas>
-</div>
+<div id="game-wrapper"><canvas id="gameCanvas"></canvas></div>
 
 <div id="controls-layer">
     <div id="joystick-base"><div id="joystick-thumb"></div></div>
@@ -34,43 +32,78 @@
 <script>
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
-    canvas.width = canvas.offsetWidth; canvas.height = canvas.offsetHeight;
-
-    let player = { x: 200, y: 300, vx: 0, vy: 0 };
+    
+    let player = { x: 100, y: 100, size: 20 };
     let asteroids = [];
     let isPaused = false;
+    let lastBombTime = 0;
+
+    function resize() {
+        canvas.width = canvas.offsetWidth;
+        canvas.height = canvas.offsetHeight;
+    }
+    window.addEventListener('resize', resize);
+    resize();
 
     // Joystick Logic
     const base = document.getElementById('joystick-base');
     const thumb = document.getElementById('joystick-thumb');
+    
     base.addEventListener('touchmove', (e) => {
         let touch = e.touches[0];
         let rect = base.getBoundingClientRect();
-        let dx = touch.clientX - (rect.left + 50);
-        let dy = touch.clientY - (rect.top + 50);
+        let dx = touch.clientX - (rect.left + 40);
+        let dy = touch.clientY - (rect.top + 40);
         thumb.style.transform = `translate(${dx}px, ${dy}px)`;
-        player.vx = dx / 10; player.vy = dy / 10;
-    });
-    base.addEventListener('touchend', () => {
-        thumb.style.transform = `translate(0,0)`;
-        player.vx = 0; player.vy = 0;
+        
+        // Move player based on joystick
+        player.x += dx / 5;
+        player.y += dy / 5;
+        
+        // Keep in bounds
+        player.x = Math.max(0, Math.min(canvas.width - player.size, player.x));
+        player.y = Math.max(0, Math.min(canvas.height - player.size, player.y));
     });
 
-    // Buttons
+    base.addEventListener('touchend', () => thumb.style.transform = `translate(0,0)`);
+
+    // Bomb Logic
+    document.getElementById('bomb-btn').onclick = () => {
+        let now = Date.now();
+        if (now - lastBombTime > 2000) { // 2 second cooldown
+            asteroids = [];
+            lastBombTime = now;
+        }
+    };
+
     document.getElementById('pause-btn').onclick = () => isPaused = !isPaused;
-    document.getElementById('bomb-btn').onclick = () => asteroids = [];
 
-    // Simple Render Loop
     function loop() {
         if (!isPaused) {
             ctx.clearRect(0,0,canvas.width, canvas.height);
-            player.x += player.vx; player.y += player.vy;
-            ctx.fillStyle = '#00ffcc';
-            ctx.fillRect(player.x, player.y, 30, 30);
             
+            // Draw Player
+            ctx.fillStyle = '#00ffcc';
+            ctx.fillRect(player.x, player.y, player.size, player.size);
+            
+            // Asteroids
             if(Math.random() < 0.05) asteroids.push({x: Math.random()*canvas.width, y: 0});
             ctx.fillStyle = '#ff2e44';
-            asteroids.forEach(a => { a.y += 5; ctx.fillRect(a.x, a.y, 20, 20); });
+            
+            for(let i = asteroids.length - 1; i >= 0; i--) {
+                let a = asteroids[i];
+                a.y += 3;
+                ctx.fillRect(a.x, a.y, 20, 20);
+                
+                // Collision Detection
+                if (a.x < player.x + player.size && a.x + 20 > player.x &&
+                    a.y < player.y + player.size && a.y + 20 > player.y) {
+                    alert("Game Over!");
+                    asteroids = [];
+                }
+                
+                if(a.y > canvas.height) asteroids.splice(i, 1);
+            }
         }
         requestAnimationFrame(loop);
     }
