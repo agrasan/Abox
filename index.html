@@ -3,528 +3,78 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <meta name="description" content="Play the ultimate Abox web games portal by Agrasan. High energy browser games.">
-    <meta name="keywords" content="Abox, Abox Portal, Abox Game, Agrasan, Agrasan Games, HTML Games">
-    <meta name="author" content="Agrasan">
     <title>ASTEROID DODGER | Abox Portal</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            user-select: none;
-            -webkit-user-select: none;
-        }
-
-        body {
-            background-color: #0b0b14;
-            color: #ffffff;
-            font-family: 'Segoe UI', Arial, sans-serif;
-            overflow: hidden;
-            width: 100vw;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        /* Top Header Bar Matching Your Image */
-        #header-bar {
-            width: 100%;
-            max-width: 450px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px 15px 10px 15px;
-        }
-
-        .header-btn {
-            background-color: #00ffcc;
-            color: #000000;
-            border: none;
-            padding: 6px 14px;
-            font-weight: bold;
-            border-radius: 4px;
-            font-size: 14px;
-            cursor: pointer;
-        }
-
-        .header-btn.close {
-            background-color: #e61e4f;
-            color: #ffffff;
-        }
-
-        #game-title {
-            color: #00ffcc;
-            font-weight: 900;
-            font-size: 18px;
-            letter-spacing: 1px;
-        }
-
-        /* Game Screen Box Matrix */
-        #game-wrapper {
-            position: relative;
-            width: 92%;
-            max-width: 420px;
-            height: 60vh;
-            border: 2px solid #00ffcc;
-            background-color: #05050a;
-            border-radius: 4px;
-            box-shadow: 0 0 15px rgba(0, 255, 204, 0.15);
-        }
-
-        canvas {
-            display: block;
-            width: 100%;
-            height: 100%;
-        }
-
-        /* Live Data Readout Panel */
-        #stats-bar {
-            width: 100%;
-            max-width: 420px;
-            display: flex;
-            justify-content: space-between;
-            padding: 15px 10px;
-            font-size: 16px;
-            font-weight: bold;
-        }
-
-        #bomb-status {
-            color: #ffcc00;
-        }
-
-        #shield-status {
-            color: #a0a0a0;
-        }
-
-        /* MOBILE CONTROLS SYSTEM LAYER */
-        #controls-layer {
-            width: 100%;
-            max-width: 420px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px 20px;
-            margin-top: auto;
-            margin-bottom: 25px;
-        }
-
-        /* Joystick Base Housing */
-        #joystick-base {
-            width: 90px;
-            height: 90px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 2px solid rgba(0, 255, 204, 0.3);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            touch-action: none;
-        }
-
-        /* Joystick center movable controller */
-        #joystick-thumb {
-            width: 38px;
-            height: 38px;
-            background: radial-gradient(circle, #00ffcc 0%, #009977 100%);
-            border-radius: 50%;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.5);
-            touch-action: none;
-        }
-
-        .action-group {
-            display: flex;
-            gap: 12px;
-        }
-
-        /* Command buttons */
-        .control-btn {
-            padding: 12px 16px;
-            font-weight: bold;
-            font-size: 14px;
-            border-radius: 8px;
-            color: white;
-            border: 1px solid rgba(255, 255, 255, 0.4);
-            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
-            touch-action: none;
-            cursor: pointer;
-        }
-
-        #pause-btn {
-            background: #ffcc00;
-            color: #000000;
-            border-color: #ffffff;
-        }
-
-        #bomb-btn {
-            background: linear-gradient(135deg, #e61e4f, #b31035);
-        }
-
-        .control-btn:active {
-            transform: scale(0.9);
-        }
-
-        /* Pause Screen Interface Layer */
-        #pause-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(5, 5, 10, 0.85);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.2s ease;
-            border-radius: 2px;
-        }
-
-        #pause-overlay.visible {
-            opacity: 1;
-            pointer-events: auto;
-        }
-
-        #pause-overlay h2 {
-            color: #ffcc00;
-            font-size: 28px;
-            margin-bottom: 15px;
-            letter-spacing: 2px;
-        }
+        body { margin: 0; background: #0b0b14; color: white; font-family: sans-serif; overflow: hidden; display: flex; flex-direction: column; align-items: center; }
+        #game-wrapper { position: relative; width: 95vw; height: 65vh; border: 2px solid #00ffcc; background: #05050a; margin-top: 10px; }
+        canvas { display: block; width: 100%; height: 100%; }
+        #controls-layer { width: 95vw; display: flex; justify-content: space-between; align-items: center; padding: 20px 0; }
+        #joystick-base { width: 100px; height: 100px; background: rgba(255,255,255,0.1); border: 2px solid #00ffcc; border-radius: 50%; display: flex; align-items: center; justify-content: center; touch-action: none; }
+        #joystick-thumb { width: 40px; height: 40px; background: #00ffcc; border-radius: 50%; }
+        .btn-group { display: flex; gap: 10px; }
+        button { padding: 15px 20px; font-weight: bold; border-radius: 10px; border: none; }
+        #pause-btn { background: #ffcc00; }
+        #bomb-btn { background: #ff2e44; color: white; }
     </style>
 </head>
 <body>
 
-    <div id="header-bar">
-        <button class="header-btn">Fullscreen</button>
-        <div id="game-title">ASTEROID DODGER</div>
-        <button class="header-btn close">Close</button>
-    </div>
+<div id="game-wrapper">
+    <canvas id="gameCanvas"></canvas>
+</div>
 
-    <div id="game-wrapper">
-        <canvas id="gameCanvas"></canvas>
-        
-        <div id="pause-overlay">
-            <h2>GAME PAUSED</h2>
-            <p>Tap Pause Button Again to Resume</p>
-        </div>
+<div id="controls-layer">
+    <div id="joystick-base"><div id="joystick-thumb"></div></div>
+    <div class="btn-group">
+        <button id="pause-btn">⏸️</button>
+        <button id="bomb-btn">💥 BOMB</button>
     </div>
-
-    <div id="stats-bar">
-        <div>Score: <span id="score-val">0</span></div>
-        <div>Shield: <span id="shield-status">None</span></div>
-        <div id="bomb-status">Bombs: <span id="bomb-val">1</span> (R)</div>
-    </div>
-
-    <div id="controls-layer">
-        <div id="joystick-base">
-            <div id="joystick-thumb"></div>
-        </div>
-
-        <div class="action-group">
-            <button id="pause-btn" class="control-btn">⏸️ Pause</button>
-            <button id="bomb-btn" class="control-btn">💥 Bomb</button>
-        </div>
-    </div>
+</div>
 
 <script>
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
+    canvas.width = canvas.offsetWidth; canvas.height = canvas.offsetHeight;
 
-    // UI elements tracking hooks
-    const scoreVal = document.getElementById('score-val');
-    const bombVal = document.getElementById('bomb-val');
-    const pauseOverlay = document.getElementById('pause-overlay');
-    const shieldStatus = document.getElementById('shield-status');
-
-    // Handle high-density scale fits
-    function resize() {
-        const rect = canvas.parentElement.getBoundingClientRect();
-        canvas.width = rect.width;
-        canvas.height = rect.height;
-    }
-    window.addEventListener('resize', resize);
-    resize();
-
-    // Game Core States Tracker Variables
-    let score = 0;
-    let bombs = 1;
+    let player = { x: 200, y: 300, vx: 0, vy: 0 };
+    let asteroids = [];
     let isPaused = false;
 
-    // Player Object Model matching the glowing cyan arrow archetype
-    const player = {
-        x: canvas.width / 2,
-        y: canvas.height * 0.75,
-        radius: 12,
-        speed: 4.5,
-        vx: 0,
-        vy: 0
-    };
-
-    const asteroids = [];
-    const stars = [];
-    const particles = [];
-
-    // Background Matrix Starfields initialization arrays
-    for(let i=0; i<35; i++){
-        stars.push({
-            x: Math.random() * window.innerWidth,
-            y: Math.random() * window.innerHeight,
-            size: Math.random() * 1.5,
-            speed: Math.random() * 0.5 + 0.2
-        });
-    }
-
-    // Asteroid Generation Vector Functions loop spawns
-    function spawnAsteroid() {
-        if (isPaused) return;
-        if (asteroids.length < 8) {
-            asteroids.push({
-                x: Math.random() * canvas.width,
-                y: -20,
-                radius: Math.random() * 15 + 8,
-                speed: Math.random() * 2 + 1.5
-            });
-        }
-    }
-    setInterval(spawnAsteroid, 900);
-
-    // Particle Burst Generation Engines
-    function explode(x, y, color) {
-        for(let i=0; i<15; i++) {
-            particles.push({
-                x: x, y: y,
-                vx: (Math.random() - 0.5) * 6,
-                vy: (Math.random() - 0.5) * 6,
-                radius: Math.random() * 2.5 + 0.5,
-                alpha: 1,
-                color: color
-            });
-        }
-    }
-
-    // Tactical Bomb Execution Mechanism logic trigger
-    function fireBomb() {
-        if (isPaused) return;
-        if (bombs > 0) {
-            bombs--;
-            bombVal.innerText = bombs;
-            
-            // Wipe clean every active hazard threat matrix element matching visual field arrays
-            for (let i = asteroids.length - 1; i >= 0; i--) {
-                explode(asteroids[i].x, asteroids[i].y, '#e61e4f');
-                asteroids.splice(i, 1);
-                score += 10;
-            }
-            scoreVal.innerText = score;
-        }
-    }
-
-    // Toggle Game Pause state freeze engines execution flow
-    function togglePause() {
-        isPaused = !isPaused;
-        if (isPaused) {
-            pauseOverlay.classList.add('visible');
-        } else {
-            pauseOverlay.classList.remove('visible');
-        }
-    }
-
-    // --- JOYSTICK INTERACTION MATHEMATICS HARDWARE CONTROLLER HOOKS ---
-    const jBase = document.getElementById('joystick-base');
-    const jThumb = document.getElementById('joystick-thumb');
-
-    let jActive = false;
-    let jCenterX = 0;
-    let jCenterY = 0;
-    const maxRadius = 30; // Physical boundary range drag lock radius limit calculation constraints
-
-    jBase.addEventListener('touchstart', (e) => {
-        jActive = true;
-        const rect = jBase.getBoundingClientRect();
-        jCenterX = rect.left + rect.width / 2;
-        jCenterY = rect.top + rect.height / 2;
-        processJoystick(e.touches[0]);
+    // Joystick Logic
+    const base = document.getElementById('joystick-base');
+    const thumb = document.getElementById('joystick-thumb');
+    base.addEventListener('touchmove', (e) => {
+        let touch = e.touches[0];
+        let rect = base.getBoundingClientRect();
+        let dx = touch.clientX - (rect.left + 50);
+        let dy = touch.clientY - (rect.top + 50);
+        thumb.style.transform = `translate(${dx}px, ${dy}px)`;
+        player.vx = dx / 10; player.vy = dy / 10;
+    });
+    base.addEventListener('touchend', () => {
+        thumb.style.transform = `translate(0,0)`;
+        player.vx = 0; player.vy = 0;
     });
 
-    window.addEventListener('touchmove', (e) => {
-        if (!jActive) return;
-        processJoystick(e.touches[0]);
-    }, { passive: false });
+    // Buttons
+    document.getElementById('pause-btn').onclick = () => isPaused = !isPaused;
+    document.getElementById('bomb-btn').onclick = () => asteroids = [];
 
-    window.addEventListener('touchend', () => {
-        jActive = false;
-        jThumb.style.transform = `translate(0px, 0px)`;
-        player.vx = 0;
-        player.vy = 0;
-    });
-
-    function processJoystick(touch) {
-        const dx = touch.clientX - jCenterX;
-        const dy = touch.clientY - jCenterY;
-        const dist = Math.sqrt(dx*dx + dy*dy);
-        const angle = Math.atan2(dy, dx);
-
-        let dragX = dx;
-        let dragY = dy;
-        if (dist > maxRadius) {
-            dragX = Math.cos(angle) * maxRadius;
-            dragY = Math.sin(angle) * maxRadius;
-        }
-
-        jThumb.style.transform = `translate(${dragX}px, ${dragY}px)`;
-
-        // Calculate and push vectors straight down to speed models definitions values
-        const intensity = Math.min(dist / maxRadius, 1);
-        if (intensity > 0.15) {
-            player.vx = Math.cos(angle) * player.speed * intensity;
-            player.vy = Math.sin(angle) * player.speed * intensity;
-        } else {
-            player.vx = 0;
-            player.vy = 0;
-        }
-    }
-
-    // Attach Interface Commands Event Triggers
-    document.getElementById('bomb-btn').addEventListener('touchstart', (e) => {
-        e.preventDefault(); fireBomb();
-    });
-    document.getElementById('pause-btn').addEventListener('touchstart', (e) => {
-        e.preventDefault(); togglePause();
-    });
-
-    // Fallback PC inputs mapping diagnostics matrix array handlers 
-    window.addEventListener('keydown', (e) => {
-        if(e.key === 'r' || e.key === 'b' || e.key === ' ') fireBomb();
-        if(e.key === 'p') togglePause();
-        if(e.key === 'ArrowLeft' || e.key === 'a') player.vx = -player.speed;
-        if(e.key === 'ArrowRight' || e.key === 'd') player.vx = player.speed;
-        if(e.key === 'ArrowUp' || e.key === 'w') player.vy = -player.speed;
-        if(e.key === 'ArrowDown' || e.key === 's') player.vy = player.speed;
-    });
-    window.addEventListener('keyup', (e) => {
-        if(['ArrowLeft', 'ArrowRight', 'a', 'd'].includes(e.key)) player.vx = 0;
-        if(['ArrowUp', 'ArrowDown', 'w', 's'].includes(e.key)) player.vy = 0;
-    });
-
-    // --- MAIN FRAME RENDERING ENGINE LOOPS RUNTIME LAYER ---
-    function renderLoop() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-        // Render Starfield Background arrays
-        ctx.fillStyle = "rgba(255,255,255,0.4)";
-        stars.forEach(star => {
-            if (!isPaused) star.y += star.speed;
-            if (star.y > canvas.height) star.y = 0;
-            ctx.fillRect(star.x % canvas.width, star.y, star.size, star.size);
-        });
-
+    // Simple Render Loop
+    function loop() {
         if (!isPaused) {
-            // Apply vector physics positions calculations alterations updates
-            player.x += player.vx;
-            player.y += player.vy;
-
-            // Restrict bounds boundary calculations
-            if (player.x < player.radius) player.x = player.radius;
-            if (player.x > canvas.width - player.radius) player.x = canvas.width - player.radius;
-            if (player.y < player.radius) player.y = player.radius;
-            if (player.y > canvas.height - player.radius) player.y = canvas.height - player.radius;
-        }
-
-        // Draw Glowing Rocket Spaceship (Triangle matching cyan color asset)
-        ctx.save();
-        ctx.beginPath();
-        ctx.moveTo(player.x, player.y - player.radius * 1.3);
-        ctx.lineTo(player.x - player.radius * 1.1, player.y + player.radius);
-        ctx.lineTo(player.x + player.radius * 1.1, player.y + player.radius);
-        ctx.closePath();
-        ctx.fillStyle = '#00ffcc';
-        ctx.shadowBlur = 10;
-        ctx.shadowColor = '#00ffcc';
-        ctx.fill();
-
-        // Little thrust flame icon
-        if (!isPaused && (Math.abs(player.vx) > 0.5 || Math.abs(player.vy) > 0.5)) {
-            ctx.beginPath();
-            ctx.moveTo(player.x - 4, player.y + player.radius);
-            ctx.lineTo(player.x, player.y + player.radius + 8);
-            ctx.lineTo(player.x + 4, player.y + player.radius);
-            ctx.fillStyle = '#ff6600';
-            ctx.fill();
-        }
-        ctx.restore();
-
-        // Processing Hazard Asteroids arrays lists rendering tracking engines 
-        for (let i = asteroids.length - 1; i >= 0; i--) {
-            let a = asteroids[i];
-            if (!isPaused) a.y += a.speed;
-
-            ctx.beginPath();
-            ctx.arc(a.x, a.y, a.radius, 0, Math.PI * 2);
-            ctx.fillStyle = '#e61e4f'; // Matched perfectly with red circles from layout image
-            ctx.fill();
-
-            if (a.y > canvas.height + 30) {
-                asteroids.splice(i, 1);
-                if (!isPaused) {
-                    score++;
-                    scoreVal.innerText = score;
-                    if (score % 25 === 0) { // Replenish ammo checks 
-                        bombs++;
-                        bombVal.innerText = bombs;
-                    }
-                }
-                continue;
-            }
-
-            // Realtime Distance Matrix Collision calculation checks
-            let dx = player.x - a.x;
-            let dy = player.y - a.y;
-            let distance = Math.sqrt(dx*dx + dy*dy);
+            ctx.clearRect(0,0,canvas.width, canvas.height);
+            player.x += player.vx; player.y += player.vy;
+            ctx.fillStyle = '#00ffcc';
+            ctx.fillRect(player.x, player.y, 30, 30);
             
-            if (distance < player.radius + a.radius) {
-                // Flash explosion, wipe score state elements clean
-                explode(player.x, player.y, '#00ffcc');
-                explode(a.x, a.y, '#e61e4f');
-                asteroids.splice(i, 1);
-                score = 0;
-                bombs = 1;
-                scoreVal.innerText = score;
-                bombVal.innerText = bombs;
-                player.x = canvas.width / 2;
-                player.y = canvas.height * 0.75;
-            }
+            if(Math.random() < 0.05) asteroids.push({x: Math.random()*canvas.width, y: 0});
+            ctx.fillStyle = '#ff2e44';
+            asteroids.forEach(a => { a.y += 5; ctx.fillRect(a.x, a.y, 20, 20); });
         }
-
-        // Particle vectors fade updates mechanics processing execution runtimes array loops 
-        for (let i = particles.length - 1; i >= 0; i--) {
-            let p = particles[i];
-            if (!isPaused) {
-                p.x += p.vx;
-                p.y += p.vy;
-                p.alpha -= 0.025;
-            }
-
-            ctx.save();
-            ctx.globalAlpha = p.alpha;
-            ctx.beginPath();
-            ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-            ctx.fillStyle = p.color;
-            ctx.fill();
-            ctx.restore();
-
-            if (p.alpha <= 0) {
-                particles.splice(i, 1);
-            }
-        }
-
-        requestAnimationFrame(renderLoop);
+        requestAnimationFrame(loop);
     }
-
-    requestAnimationFrame(renderLoop);
+    loop();
 </script>
 </body>
 </html>
