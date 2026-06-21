@@ -1,49 +1,1441 @@
-import com.badlogic.gdx.*;
-import com.badlogic.gdx.graphics.*;
-import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import com.badlogic.gdx.utils.Array;
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="description" content="Play the ultimate Abox web games portal by Agrasan. High energy browser games.">
+    <meta name="keywords" content="Abox, Abox Portal, Abox Game, Agrasan, Agrasan Games, HTML Games">
+    <meta name="author" content="Agrasan">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Abox Portal | Handcrafted HTML5 Experiences</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+        }
 
-public class AsteroidDodger extends ApplicationAdapter {
-    private ShapeRenderer shapeRenderer;
-    private float playerX, playerY;
-    
-    // Object Pool to prevent garbage collection stutters on low-end PCs
-    private static class Asteroid { float x, y, radius, speed; boolean active; }
-    private Array<Asteroid> pool = new Array<>();
+        body {
+            background-color: #0d0d11;
+            color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow-x: hidden;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
 
-    @Override
-    public void create() {
-        shapeRenderer = new ShapeRenderer();
-        playerX = 400; playerY = 100;
-        for (int i = 0; i < 50; i++) pool.add(new Asteroid());
+        /* --- DASHBOARD PORTAL PORT LAYOUT --- */
+        #portal-hub {
+            width: 100%;
+            max-width: 900px;
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .portal-logo-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .portal-badge {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #00d2d3, #00a8ff);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            font-weight: 900;
+            color: #0d0d11;
+            box-shadow: 0 0 20px rgba(0, 210, 211, 0.4);
+            margin-bottom: 15px;
+        }
+
+        h1.portal-title {
+            font-size: 36px;
+            font-weight: 900;
+            letter-spacing: 4px;
+            color: #ffffff;
+        }
+
+        h1.portal-title span {
+            color: #00ffcc;
+            text-shadow: 0 0 10px rgba(0, 255, 204, 0.5);
+        }
+
+        .portal-subtitle {
+            color: #57606f;
+            font-size: 14px;
+            margin-top: 5px;
+            letter-spacing: 1px;
+        }
+
+        .games-grid {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 30px;
+            width: 100%;
+        }
+
+        .game-card {
+            width: 150px;
+            height: 150px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            position: relative;
+        }
+
+        .game-card.active:hover {
+            transform: translateY(-5px);
+            border-color: #00ffcc;
+            background: rgba(0, 255, 204, 0.03);
+            box-shadow: 0 10px 20px rgba(0, 255, 204, 0.05);
+        }
+
+        .game-card#card-dodger.active { border-color: rgba(0, 255, 204, 0.2); }
+        .game-card#card-snake.active { border-color: rgba(255, 0, 128, 0.2); }
+        .game-card#card-firewater.active { border-color: rgba(255, 102, 0, 0.2); }
+
+        .game-card#card-snake.active:hover {
+            border-color: #ff0080;
+            background: rgba(255, 0, 128, 0.03);
+            box-shadow: 0 10px 20px rgba(255, 0, 128, 0.05);
+        }
+
+        .game-card#card-firewater.active:hover {
+            border-color: #ff6600;
+            background: rgba(255, 102, 0, 0.03);
+            box-shadow: 0 10px 20px rgba(255, 102, 0, 0.05);
+        }
+
+        .game-card.disabled {
+            cursor: not-allowed;
+            opacity: 0.3;
+        }
+
+        .game-icon {
+            font-size: 36px;
+            margin-bottom: 15px;
+        }
+
+        .game-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #a4b0be;
+            letter-spacing: 0.5px;
+        }
+
+        /* --- THE IN-GAME VIEWPORT WRAPPER SYSTEM --- */
+        #game-runtime-container {
+            display: none;
+            width: 100%;
+            max-width: 500px;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px 10px;
+            background-color: #0d0d11;
+        }
+
+        #game-runtime-container:fullscreen {
+            max-width: 100vw !important;
+            height: 100vh;
+            padding: 30px;
+            justify-content: center;
+        }
+
+        .game-navbar {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        #game-runtime-container:fullscreen .game-navbar {
+            max-width: 100%;
+        }
+
+        .nav-btn {
+            background-color: #1e272e;
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 8px 16px;
+            font-weight: bold;
+            border-radius: 6px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .nav-btn:hover { background-color: #2f3640; }
+        .nav-btn.close-btn { background-color: #ff4757; border: none; }
+        .nav-btn.close-btn:hover { background-color: #ff6b81; }
+
+        .nav-title {
+            font-weight: 800;
+            font-size: 18px;
+            letter-spacing: 1.5px;
+        }
+
+        #canvas-frame-box {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 1 / 1.15;
+            background-color: #05050a;
+            border-radius: 6px;
+        }
+
+        #game-runtime-container:fullscreen #canvas-frame-box {
+            max-width: 100%;
+            height: 80vh;
+            aspect-ratio: auto;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        .telemetry-dashboard {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 5px;
+            font-size: 14px;
+            font-weight: bold;
+            color: #ffffff;
+            background: rgba(255,255,255,0.02);
+            border-radius: 6px;
+            margin-top: 10px;
+        }
+
+        #game-runtime-container:fullscreen .telemetry-dashboard {
+            max-width: 100%;
+        }
+
+        /* --- GAME OVER INTERACTIVE OVERLAY SCREEN --- */
+        #gameover-overlay {
+            display: none;
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(5, 5, 10, 0.85);
+            z-index: 100;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+        }
+
+        #gameover-overlay h2 {
+            font-size: 32px;
+            font-weight: 900;
+            letter-spacing: 2px;
+            color: #ff4757;
+            margin-bottom: 20px;
+            text-shadow: 0 0 10px rgba(255, 71, 87, 0.4);
+        }
+
+        .overlay-actions {
+            display: flex;
+            gap: 15px;
+        }
+
+        .action-btn {
+            padding: 12px 24px;
+            font-weight: bold;
+            font-size: 14px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+        .action-btn:active { transform: scale(0.95); }
+
+        #btn-restart { background-color: #2ed573; color: #fff; }
+        #btn-quit { background-color: #747d8c; color: #fff; }
+    </style>
+</head>
+<body>
+
+    <div id="portal-hub">
+        <div class="portal-logo-container">
+            <div class="portal-badge">A</div>
+            <h1 class="portal-title">A<span>BOX</span></h1>
+            <div class="portal-subtitle">Handcrafted Classic Custom HTML5 Experiences</div>
+        </div>
+
+        <div class="games-grid">
+            <div class="game-card active" id="card-dodger" onclick="launchGame('dodger')">
+                <div class="game-icon">🚀</div>
+                <div class="game-label">Asteroid Dodger</div>
+            </div>
+
+            <div class="game-card active" id="card-snake" onclick="launchGame('snake')">
+                <div class="game-icon">🐍</div>
+                <div class="game-label">Cyber Snake</div>
+            </div>
+
+            <div class="game-card active" id="card-firewater" onclick="launchGame('firewater')">
+                <div class="game-icon">🔥💧</div>
+                <div class="game-label">Fire & Water</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="game-runtime-container">
+        <div class="game-navbar">
+            <button class="nav-btn" onclick="toggleFullscreen()">Fullscreen</button>
+            <div class="nav-title" id="navbar-header-text">GAME_TITLE</div>
+            <button class="nav-btn close-btn" onclick="exitToHub()">Close</button>
+        </div>
+
+        <div id="canvas-frame-box">
+            <div id="gameover-overlay">
+                <h2 id="gameover-headline">GAME OVER</h2>
+                <div class="overlay-actions">
+                    <button id="btn-restart" class="action-btn" onclick="restartCurrentGame()">Restart</button>
+                    <button id="btn-quit" class="action-btn" onclick="exitToHub()">Quit</button>
+                </div>
+            </div>
+            <canvas id="gameCanvas"></canvas>
+        </div>
+
+        <div class="telemetry-dashboard">
+            <div id="telemetry-auxiliary">Status: Active</div>
+        </div>
+    </div>
+
+<script>
+    const hubElement = document.getElementById('portal-hub');
+    const runtimeContainer = document.getElementById('game-runtime-container');
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    const titleText = document.getElementById('navbar-header-text');
+    const auxText = document.getElementById('telemetry-auxiliary');
+    const borderBox = document.getElementById('canvas-frame-box');
+    const gameOverOverlay = document.getElementById('gameover-overlay');
+    const gameOverHeadline = document.getElementById('gameover-headline');
+
+    let currentActiveGame = null;
+    let animationFrameId = null;
+    let loopSpeedIntervalId = null;
+    let isPaused = false;
+
+    // SCORING MODULE MATRIX
+    let globalScore = 0;
+    let dodgerHighScore = localStorage.getItem('dodger_highscore') ? parseInt(localStorage.getItem('dodger_highscore')) : 0;
+    let snakeHighScore = localStorage.getItem('snake_highscore') ? parseInt(localStorage.getItem('snake_highscore')) : 0;
+
+    // AUDIO SYNTHESIZER AND BACKGROUND MUSIC CAPTURE MATRIX
+    let audioCtx = null;
+    let bgmOsc1 = null, bgmOsc2 = null;
+    let bgmGain = null;
+
+    function initAudio() {
+        if (!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioCtx.state === 'suspended') {
+            audioCtx.resume();
+        }
     }
 
-    @Override
-    public void render() {
-        Gdx.gl.glClearColor(0.05f, 0.05f, 0.07f, 1);
-        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+    function startBackgroundMusic() {
+        if (!audioCtx) return;
+        try {
+            stopBackgroundMusic();
 
-        // Input Handling
-        if (Gdx.input.isKeyPressed(Input.Keys.LEFT)) playerX -= 5;
-        if (Gdx.input.isKeyPressed(Input.Keys.RIGHT)) playerX += 5;
+            bgmGain = audioCtx.createGain();
+            bgmGain.gain.setValueAtTime(0.02, audioCtx.currentTime);
+            bgmGain.connect(audioCtx.destination);
 
-        // Logic Update
-        for (Asteroid a : pool) {
-            if (!a.active && Math.random() < 0.02) {
-                a.x = (float) Math.random() * 800; a.y = 600; a.radius = 10; a.speed = 3; a.active = true;
+            bgmOsc1 = audioCtx.createOscillator();
+            bgmOsc1.type = 'triangle';
+            bgmOsc1.frequency.setValueAtTime(65.41, audioCtx.currentTime); 
+            bgmOsc1.connect(bgmGain);
+
+            bgmOsc2 = audioCtx.createOscillator();
+            bgmOsc2.type = 'sine';
+            bgmOsc2.frequency.setValueAtTime(98.00, audioCtx.currentTime); 
+            bgmOsc2.connect(bgmGain);
+
+            bgmOsc1.start();
+            bgmOsc2.start();
+        } catch(e) {}
+    }
+
+    function stopBackgroundMusic() {
+        try {
+            if (bgmOsc1) { bgmOsc1.stop(); bgmOsc1.disconnect(); bgmOsc1 = null; }
+            if (bgmOsc2) { bgmOsc2.stop(); bgmOsc2.disconnect(); bgmOsc2 = null; }
+            if (bgmGain) { bgmGain.disconnect(); bgmGain = null; }
+        } catch(e) {}
+    }
+
+    function updateBgmState() {
+        if (!bgmGain) return;
+        if (isPaused || gameOverOverlay.style.display === 'flex') {
+            bgmGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.05);
+        } else {
+            bgmGain.gain.setTargetAtTime(0.02, audioCtx.currentTime, 0.1);
+        }
+    }
+
+    function playSound(type) {
+        if (!audioCtx) return;
+        try {
+            let osc = audioCtx.createOscillator();
+            let gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            let now = audioCtx.currentTime;
+
+            if (type === 'lock') {
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(320, now);
+                osc.frequency.exponentialRampToValueAtTime(160, now + 0.12);
+                gain.gain.setValueAtTime(0.12, now);
+                gain.gain.linearRampToValueAtTime(0.001, now + 0.12);
+                osc.start(now); osc.stop(now + 0.12);
+            } 
+            else if (type === 'unlock') {
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(160, now);
+                osc.frequency.exponentialRampToValueAtTime(480, now + 0.12);
+                gain.gain.setValueAtTime(0.12, now);
+                gain.gain.linearRampToValueAtTime(0.001, now + 0.12);
+                osc.start(now); osc.stop(now + 0.12);
+            } 
+            else if (type === 'bomb_pickup') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(520, now);
+                osc.frequency.setValueAtTime(780, now + 0.06);
+                gain.gain.setValueAtTime(0.18, now);
+                gain.gain.linearRampToValueAtTime(0.001, now + 0.15);
+                osc.start(now); osc.stop(now + 0.15);
+            } 
+            else if (type === 'shield_pickup') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(240, now);
+                osc.frequency.exponentialRampToValueAtTime(640, now + 0.25);
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.linearRampToValueAtTime(0.001, now + 0.25);
+                osc.start(now); osc.stop(now + 0.25);
+            } 
+            else if (type === 'shield_break') {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(580, now);
+                osc.frequency.linearRampToValueAtTime(220, now + 0.15);
+                gain.gain.setValueAtTime(0.22, now);
+                gain.gain.linearRampToValueAtTime(0.001, now + 0.15);
+                osc.start(now); osc.stop(now + 0.15);
+            } 
+            else if (type === 'tactical_detonation') {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(110, now);
+                osc.frequency.linearRampToValueAtTime(45, now + 0.4);
+                gain.gain.setValueAtTime(0.35, now);
+                gain.gain.linearRampToValueAtTime(0.001, now + 0.4);
+                osc.start(now); osc.stop(now + 0.4);
+            } 
+            else if (type === 'ship_crash') {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(160, now);
+                osc.frequency.linearRampToValueAtTime(30, now + 0.45);
+                gain.gain.setValueAtTime(0.35, now);
+                gain.gain.linearRampToValueAtTime(0.001, now + 0.45);
+                osc.start(now); osc.stop(now + 0.45);
+            } 
+            else if (type === 'warning_blip') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(880, now);
+                gain.gain.setValueAtTime(0.06, now);
+                gain.gain.linearRampToValueAtTime(0.001, now + 0.04);
+                osc.start(now); osc.stop(now + 0.04);
+            } 
+            else if (type === 'score') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(587.33, now); 
+                osc.frequency.setValueAtTime(880, now + 0.06); 
+                gain.gain.setValueAtTime(0.15, now);
+                gain.gain.linearRampToValueAtTime(0.001, now + 0.2);
+                osc.start(now); osc.stop(now + 0.2);
             }
-            if (a.active) {
-                a.y -= a.speed;
-                if (a.y < 0) a.active = false;
+        } catch(e) {}
+    }
+
+    function syncCanvasSizing() {
+        const rect = borderBox.getBoundingClientRect();
+        canvas.width = rect.width;
+        canvas.height = rect.height;
+    }
+    
+    window.addEventListener('resize', () => { if (currentActiveGame) syncCanvasSizing(); });
+    document.addEventListener('fullscreenchange', () => { if (currentActiveGame) setTimeout(syncCanvasSizing, 150); });
+
+    function launchGame(gameKey) {
+        initAudio();
+        hubElement.style.display = 'none';
+        runtimeContainer.style.display = 'flex';
+        gameOverOverlay.style.display = 'none';
+        gameOverHeadline.innerText = "GAME OVER";
+        gameOverHeadline.style.color = "#ff4757";
+        isPaused = false;
+        globalScore = 0;
+        
+        currentActiveGame = gameKey;
+        resetInputStates();
+
+        if (gameKey === 'dodger') {
+            titleText.innerText = "ASTEROID DODGER";
+            titleText.style.color = "#00ffcc";
+            borderBox.style.border = "2px solid #00ffcc";
+            auxText.style.color = "#ffcc00";
+            syncCanvasSizing();
+            startBackgroundMusic();
+            initDodgerEngine();
+        } else if (gameKey === 'snake') {
+            titleText.innerText = "CYBER SNAKE";
+            titleText.style.color = "#ff0080";
+            borderBox.style.border = "2px solid #ff0080";
+            auxText.style.color = "#00a8ff";
+            syncCanvasSizing();
+            startBackgroundMusic();
+            initSnakeEngine();
+        } else if (gameKey === 'firewater') {
+            titleText.innerText = "FIREBOY & WATERGIRL";
+            titleText.style.color = "#ff6600";
+            borderBox.style.border = "2px solid #ff6600";
+            auxText.style.color = "#ffffff";
+            syncCanvasSizing();
+            startBackgroundMusic();
+            initFireWaterEngine();
+        }
+    }
+
+    function triggerGameOver() {
+        playSound('ship_crash');
+        updateBgmState();
+        if (animationFrameId) cancelAnimationFrame(animationFrameId);
+        if (loopSpeedIntervalId) clearInterval(loopSpeedIntervalId);
+        canvas.style.cursor = 'default';
+        
+        if (currentActiveGame === 'dodger' && globalScore > dodgerHighScore) {
+            dodgerHighScore = globalScore;
+            localStorage.setItem('dodger_highscore', dodgerHighScore);
+        } else if (currentActiveGame === 'snake' && globalScore > snakeHighScore) {
+            snakeHighScore = globalScore;
+            localStorage.setItem('snake_highscore', snakeHighScore);
+        }
+
+        gameOverHeadline.innerText = "GAME OVER";
+        gameOverHeadline.style.color = "#ff4757";
+        gameOverOverlay.style.display = 'flex';
+    }
+
+    function triggerVictory() {
+        playSound('shield_pickup');
+        updateBgmState();
+        if (animationFrameId) cancelAnimationFrame(animationFrameId);
+        if (loopSpeedIntervalId) clearInterval(loopSpeedIntervalId);
+        canvas.style.cursor = 'default';
+        
+        gameOverHeadline.innerText = "VICTORY STAGE CLEAR!";
+        gameOverHeadline.style.color = "#2ed573";
+        gameOverOverlay.style.display = 'flex';
+    }
+
+    function restartCurrentGame() {
+        gameOverOverlay.style.display = 'none';
+        isPaused = false;
+        globalScore = 0;
+        updateBgmState();
+        resetInputStates();
+        if (currentActiveGame === 'dodger') initDodgerEngine();
+        if (currentActiveGame === 'snake') initSnakeEngine();
+        if (currentActiveGame === 'firewater') initFireWaterEngine();
+    }
+
+    function exitToHub() {
+        currentActiveGame = null;
+        isPaused = false;
+        stopBackgroundMusic();
+        if (document.fullscreenElement) document.exitFullscreen();
+        if (animationFrameId) cancelAnimationFrame(animationFrameId);
+        if (loopSpeedIntervalId) clearInterval(loopSpeedIntervalId);
+        canvas.style.cursor = 'default';
+        
+        gameOverOverlay.style.display = 'none';
+        runtimeContainer.style.display = 'none';
+        hubElement.style.display = 'flex';
+    }
+
+    function toggleFullscreen() {
+        if (!document.fullscreenElement) {
+            runtimeContainer.requestFullscreen().catch(err => alert("Fullscreen error: " + err.message));
+        } else {
+            document.exitFullscreen();
+        }
+    }
+
+    let keys = {};
+    let mousePos = { x: 0, y: 0 };
+    let isMouseInsideCanvas = true;
+
+    window.addEventListener('keydown', (e) => { 
+        let keyLower = e.key.toLowerCase();
+        
+        if (e.key === ' ' || e.code === 'Space') {
+            e.preventDefault(); 
+            if (currentActiveGame && gameOverOverlay.style.display !== 'flex') {
+                isPaused = !isPaused;
+                updateBgmState();
+                if (currentActiveGame === 'dodger') updateDodgerAuxTelemetry();
+            }
+            return;
+        }
+
+        if (['arrowup', 'arrowdown', 'arrowleft', 'arrowright'].includes(keyLower)) {
+            keys[keyLower] = true;
+        } else {
+            keys[keyLower] = true; 
+        }
+        
+        if (keyLower === 'r' && currentActiveGame === 'dodger' && !isPaused) {
+            activateTacticalBomb();
+        }
+
+        if (keyLower === 't' && currentActiveGame === 'dodger' && !isPaused && gameOverOverlay.style.display !== 'flex') {
+            dodgerMouseLocked = !dodgerMouseLocked;
+            playSound(dodgerMouseLocked ? 'lock' : 'unlock');
+            updateDodgerAuxTelemetry();
+        }
+    });
+    
+    window.addEventListener('keyup', (e) => { 
+        let keyLower = e.key.toLowerCase();
+        if (['arrowup', 'arrowdown', 'arrowleft', 'arrowright'].includes(keyLower)) {
+            keys[keyLower] = false;
+        } else {
+            keys[keyLower] = false; 
+        }
+    });
+    
+    canvas.addEventListener('mousemove', (e) => {
+        let rect = canvas.getBoundingClientRect();
+        mousePos.x = e.clientX - rect.left;
+        mousePos.y = e.clientY - rect.top;
+    });
+
+    canvas.addEventListener('mouseenter', () => { isMouseInsideCanvas = true; });
+    canvas.addEventListener('mouseleave', () => { isMouseInsideCanvas = false; });
+
+    function resetInputStates() { keys = {}; isMouseInsideCanvas = true; }
+
+
+    /* ========================================================================
+       ENGINE MODEL #1: ASTEROID DODGER (UNTOUCHED / LOCKED FROM CHANGES)
+       ======================================================================== */
+    let dodgerPlayer, dodgerAsteroids, dodgerStars, dodgerBombs, dodgerItems, dodgerCoins, dodgerMouseLocked, warningSoundTimer;
+    let activeBlastShockwaves = [];
+
+    function initDodgerEngine() {
+        dodgerBombs = 1;
+        dodgerMouseLocked = false;
+        warningSoundTimer = 0;
+        activeBlastShockwaves = [];
+        canvas.style.cursor = 'none';
+
+        dodgerPlayer = {
+            x: canvas.width / 2,
+            y: canvas.height * 0.8,
+            baseRadius: 13,
+            hasShield: false,
+            shieldTimeLeft: 0
+        };
+
+        dodgerAsteroids = [];
+        dodgerItems = [];
+        dodgerCoins = [];
+        dodgerStars = [];
+
+        for (let i = 0; i < 150; i++) {
+            dodgerStars.push({
+                x: Math.random() * 3000, 
+                y: Math.random() * 3000,
+                size: Math.random() * 1.5 + 0.5,
+                speed: Math.random() * 0.6 + 0.2
+            });
+        }
+
+        if (loopSpeedIntervalId) clearInterval(loopSpeedIntervalId);
+        
+        loopSpeedIntervalId = setInterval(() => {
+            if (currentActiveGame !== 'dodger' || isPaused) return;
+
+            let dynamicMaxAsteroids = document.fullscreenElement ? 90 : 45;
+
+            if (dodgerAsteroids.length < dynamicMaxAsteroids) {
+                dodgerAsteroids.push({
+                    xRelative: Math.random(), 
+                    y: -40,
+                    baseRadius: Math.random() * 11 + 7,
+                    speed: Math.random() * 2.2 + 1.6
+                });
+            }
+
+            if (Math.random() < 0.25) {
+                dodgerCoins.push({
+                    xRelative: Math.random() * 0.92 + 0.04,
+                    y: -40,
+                    baseRadius: 9,
+                    speed: Math.random() * 1.2 + 1.8,
+                    pulsePhase: Math.random() * Math.PI
+                });
+            }
+
+            if (Math.random() < 0.12) {
+                let typeKey = Math.random() < 0.5 ? 'shield' : 'bombItem';
+                dodgerItems.push({
+                    xRelative: Math.random() * 0.9 + 0.05,
+                    y: -40,
+                    baseRadius: 10,
+                    type: typeKey,
+                    speed: 2
+                });
+            }
+        }, 180);
+
+        updateDodgerAuxTelemetry();
+        runDodgerLoop();
+    }
+
+    function activateTacticalBomb() {
+        if (dodgerBombs > 0) {
+            dodgerBombs--;
+            playSound('tactical_detonation');
+            
+            activeBlastShockwaves.push({
+                x: dodgerPlayer.x,
+                y: dodgerPlayer.y,
+                currentRadius: 10,
+                maxRadius: document.fullscreenElement ? 180 : 120, 
+                speed: 6.5 
+            });
+
+            updateDodgerAuxTelemetry();
+        }
+    }
+
+    function updateDodgerAuxTelemetry() {
+        if (isPaused) {
+            auxText.innerText = "GAME PAUSED (Space)";
+            return;
+        }
+        let shieldText = "Off";
+        if (dodgerPlayer.hasShield) {
+            let secondsLeft = Math.ceil(dodgerPlayer.shieldTimeLeft / 1000);
+            shieldText = "ACTIVE (" + secondsLeft + "s) 🛡️";
+        }
+        let lockText = dodgerMouseLocked ? "LOCKED 🔒" : "FREE 🔓";
+        auxText.innerText = "Mouse: " + lockText + " (T) | Bombs: " + dodgerBombs + " (R) | Shield: " + shieldText;
+    }
+
+    let lastFrameTimestamp = performance.now();
+
+    function runDodgerLoop(currentTimestamp) {
+        if (currentActiveGame !== 'dodger') return;
+
+        if (!currentTimestamp) currentTimestamp = performance.now();
+        let deltaMs = currentTimestamp - lastFrameTimestamp;
+        lastFrameTimestamp = currentTimestamp;
+
+        if (isPaused) {
+            ctx.save();
+            ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = "#ffcc00";
+            ctx.font = "bold 24px sans-serif";
+            ctx.textAlign = "center";
+            ctx.fillText("PAUSED", canvas.width / 2, canvas.height / 2);
+            ctx.restore();
+            
+            animationFrameId = requestAnimationFrame(runDodgerLoop);
+            return;
+        }
+
+        if (!isMouseInsideCanvas && gameOverOverlay.style.display !== 'flex') {
+            warningSoundTimer += deltaMs;
+            if (warningSoundTimer >= 220) { 
+                playSound('warning_blip');
+                warningSoundTimer = 0;
+            }
+        } else {
+            warningSoundTimer = 0;
+        }
+
+        if (dodgerPlayer.hasShield) {
+            dodgerPlayer.shieldTimeLeft -= deltaMs;
+            if (dodgerPlayer.shieldTimeLeft <= 0) {
+                dodgerPlayer.hasShield = false;
+                dodgerPlayer.shieldTimeLeft = 0;
+            }
+            updateDodgerAuxTelemetry();
+        }
+
+        let sizeMultiplier = document.fullscreenElement ? 0.65 : 1.0;
+        let activeRadius = dodgerPlayer.baseRadius * sizeMultiplier;
+
+        if (!dodgerMouseLocked) {
+            dodgerPlayer.x = mousePos.x;
+            dodgerPlayer.y = mousePos.y;
+        }
+
+        if (dodgerPlayer.x < activeRadius) dodgerPlayer.x = activeRadius;
+        if (dodgerPlayer.x > canvas.width - activeRadius) dodgerPlayer.x = canvas.width - activeRadius;
+        if (dodgerPlayer.y < activeRadius) dodgerPlayer.y = activeRadius;
+        if (dodgerPlayer.y > canvas.height - activeRadius) dodgerPlayer.y = canvas.height - activeRadius;
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        ctx.fillStyle = "rgba(255,255,255,0.4)";
+        dodgerStars.forEach(star => {
+            let mappedX = star.x % canvas.width;
+            star.y += star.speed;
+            let mappedY = star.y % canvas.height;
+            ctx.fillRect(mappedX, mappedY, star.size, star.size);
+        });
+
+        for (let b = activeBlastShockwaves.length - 1; b >= 0; b--) {
+            let wave = activeBlastShockwaves[b];
+            wave.currentRadius += wave.speed;
+
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(wave.x, wave.y, wave.currentRadius, 0, Math.PI * 2);
+            ctx.strokeStyle = "rgba(255, 165, 0, " + (1 - (wave.currentRadius / wave.maxRadius)) + ")";
+            ctx.lineWidth = 4 * sizeMultiplier;
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = "#ff5500";
+            ctx.stroke();
+            ctx.fillStyle = "rgba(255, 68, 0, " + (0.15 * (1 - (wave.currentRadius / wave.maxRadius))) + ")";
+            ctx.fill();
+            ctx.restore();
+
+            if (wave.currentRadius >= wave.maxRadius) {
+                activeBlastShockwaves.splice(b, 1);
             }
         }
 
-        // Draw
-        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-        shapeRenderer.setColor(Color.CYAN);
-        shapeRenderer.circle(playerX, playerY, 15); // Draw Player
-        shapeRenderer.setColor(Color.GRAY);
-        for (Asteroid a : pool) if (a.active) shapeRenderer.circle(a.x, a.y, a.radius);
-        shapeRenderer.end();
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(dodgerPlayer.x, dodgerPlayer.y - activeRadius * 1.3);
+        ctx.lineTo(dodgerPlayer.x - activeRadius * 1.1, dodgerPlayer.y + activeRadius);
+        ctx.lineTo(dodgerPlayer.x + activeRadius * 1.1, dodgerPlayer.y + activeRadius);
+        ctx.closePath();
+        
+        ctx.fillStyle = dodgerMouseLocked ? '#ffcc00' : '#00ffcc';
+        ctx.shadowBlur = 10 * sizeMultiplier;
+        ctx.shadowColor = ctx.fillStyle;
+        ctx.fill();
+
+        if (dodgerPlayer.hasShield) {
+            ctx.beginPath();
+            ctx.arc(dodgerPlayer.x, dodgerPlayer.y + 2, activeRadius * 2, 0, Math.PI * 2);
+            ctx.strokeStyle = '#2ed573';
+            ctx.lineWidth = 2 * sizeMultiplier;
+            ctx.shadowBlur = 8 * sizeMultiplier;
+            ctx.shadowColor = '#2ed573';
+            ctx.stroke();
+        }
+        ctx.restore();
+
+        for (let c = dodgerCoins.length - 1; c >= 0; c--) {
+            let coin = dodgerCoins[c];
+            coin.y += coin.speed;
+            coin.pulsePhase += 0.08;
+
+            let currentCoinX = coin.xRelative * canvas.width;
+            let currentCoinRadius = coin.baseRadius * sizeMultiplier;
+            
+            ctx.save();
+            ctx.beginPath();
+            let horizontalScale = Math.abs(Math.sin(coin.pulsePhase));
+            ctx.ellipse(currentCoinX, coin.y, currentCoinRadius * horizontalScale, currentCoinRadius, 0, 0, Math.PI * 2);
+            ctx.fillStyle = '#ffd700'; 
+            ctx.shadowBlur = 10 * sizeMultiplier;
+            ctx.shadowColor = '#ffd700';
+            ctx.fill();
+            ctx.beginPath();
+            ctx.ellipse(currentCoinX, coin.y, (currentCoinRadius * 0.5) * horizontalScale, currentCoinRadius * 0.5, 0, 0, Math.PI * 2);
+            ctx.strokeStyle = '#b8860b';
+            ctx.lineWidth = 1.5 * sizeMultiplier;
+            ctx.stroke();
+            ctx.restore();
+
+            let cx = dodgerPlayer.x - currentCoinX;
+            let cy = dodgerPlayer.y - coin.y;
+            let cdist = Math.sqrt(cx*cx + cy*cy);
+            if (cdist < activeRadius + currentCoinRadius) {
+                playSound('score');
+                globalScore += 10;
+                dodgerCoins.splice(c, 1);
+                continue;
+            }
+
+            if (coin.y > canvas.height + 40) {
+                dodgerCoins.splice(c, 1);
+            }
+        }
+
+        for (let i = dodgerItems.length - 1; i >= 0; i--) {
+            let item = dodgerItems[i];
+            item.y += item.speed;
+
+            let currentItemX = item.xRelative * canvas.width;
+            let currentItemRadius = item.baseRadius * sizeMultiplier;
+
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(currentItemX, item.y, currentItemRadius, 0, Math.PI * 2);
+            if (item.type === 'shield') {
+                ctx.fillStyle = '#2ed573';
+                ctx.shadowColor = '#2ed573';
+            } else {
+                ctx.fillStyle = '#ffa500';
+                ctx.shadowColor = '#ffa500';
+            }
+            ctx.shadowBlur = 8 * sizeMultiplier;
+            ctx.fill();
+            ctx.restore();
+
+            let idx = dodgerPlayer.x - currentItemX;
+            let idy = dodgerPlayer.y - item.y;
+            let idist = Math.sqrt(idx*idx + idy*idy);
+            if (idist < activeRadius + currentItemRadius) {
+                if (item.type === 'shield') {
+                    playSound('shield_pickup');
+                    dodgerPlayer.hasShield = true;
+                    dodgerPlayer.shieldTimeLeft = 30000; 
+                } else {
+                    playSound('bomb_pickup');
+                    dodgerBombs++;
+                }
+                updateDodgerAuxTelemetry();
+                dodgerItems.splice(i, 1);
+                continue;
+            }
+
+            if (item.y > canvas.height + 40) {
+                dodgerItems.splice(i, 1);
+            }
+        }
+
+        ctx.fillStyle = '#e61e4f';
+        for (let i = dodgerAsteroids.length - 1; i >= 0; i--) {
+            let a = dodgerAsteroids[i];
+            a.y += a.speed;
+
+            let currentAsteroidX = a.xRelative * canvas.width;
+            let currentAsteroidRadius = a.baseRadius * sizeMultiplier;
+
+            let annihilatedByBomb = false;
+            for (let wave of activeBlastShockwaves) {
+                let bx = currentAsteroidX - wave.x;
+                let by = a.y - wave.y;
+                let bdist = Math.sqrt(bx*bx + by*by);
+                if (bdist <= wave.currentRadius + currentAsteroidRadius) {
+                    annihilatedByBomb = true;
+                    break;
+                }
+            }
+
+            if (annihilatedByBomb) {
+                dodgerAsteroids.splice(i, 1);
+                continue;
+            }
+
+            ctx.beginPath();
+            ctx.arc(currentAsteroidX, a.y, currentAsteroidRadius, 0, Math.PI * 2);
+            ctx.fill();
+
+            if (a.y > canvas.height + 40) {
+                dodgerAsteroids.splice(i, 1);
+                continue;
+            }
+
+            let dx = dodgerPlayer.x - currentAsteroidX;
+            let dy = dodgerPlayer.y - a.y;
+            let dist = Math.sqrt(dx*dx + dy*dy);
+            
+            let collisionBoundaryThreshold = dodgerPlayer.hasShield ? (activeRadius * 2 + currentAsteroidRadius) : (activeRadius + currentAsteroidRadius);
+
+            if (dist < collisionBoundaryThreshold) {
+                if (dodgerPlayer.hasShield) {
+                    playSound('shield_break');
+                    dodgerPlayer.hasShield = false;
+                    dodgerPlayer.shieldTimeLeft = 0;
+                    updateDodgerAuxTelemetry();
+                    dodgerAsteroids.splice(i, 1);
+                } else {
+                    triggerGameOver();
+                    return;
+                }
+            }
+        }
+
+        ctx.save();
+        ctx.fillStyle = '#ffffff';
+        ctx.font = "bold " + (14 * sizeMultiplier) + "px sans-serif";
+        ctx.textAlign = "left";
+        ctx.fillText("SCORE: " + globalScore, 15, 25);
+        ctx.textAlign = "right";
+        ctx.fillText("HIGH: " + Math.max(dodgerHighScore, globalScore), canvas.width - 15, 25);
+        ctx.restore();
+
+        animationFrameId = requestAnimationFrame(runDodgerLoop);
     }
-}
+
+
+    /* ========================================================================
+       ENGINE MODEL #2: CYBER SNAKE (UNTOUCHED / LOCKED FROM CHANGES)
+       ======================================================================== */
+    let snakeBodyPoints, snakeTargetDirection, snakeCurrentDirection, cyberApple, snakeBodyThickness, cyberAppleRadius;
+
+    function initSnakeEngine() {
+        auxText.innerText = "Status: Arena Active";
+        canvas.style.cursor = 'default';
+
+        let startX = canvas.width / 2;
+        let startY = canvas.height / 2;
+        
+        snakeBodyPoints = [];
+        for (let i = 0; i < 30; i++) {
+            snakeBodyPoints.push({ x: startX, y: startY + i * 4 });
+        }
+
+        snakeTargetDirection = { x: 0, y: -1 }; 
+        snakeCurrentDirection = { x: 0, y: -1 };
+        
+        snakeBodyThickness = 9;
+        cyberAppleRadius = 11;
+
+        spawnCyberApple();
+        runSnakeLoop();
+    }
+
+    function spawnCyberApple() {
+        let borderPadding = 30;
+        cyberApple = {
+            x: borderPadding + Math.random() * (canvas.width - borderPadding * 2),
+            y: borderPadding + Math.random() * (canvas.height - borderPadding * 2)
+        };
+    }
+
+    function runSnakeLoop() {
+        if (currentActiveGame !== 'snake') return;
+
+        if (isPaused) {
+            ctx.save();
+            ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = "#ffcc00";
+            ctx.font = "bold 24px sans-serif";
+            ctx.textAlign = "center";
+            ctx.fillText("PAUSED", canvas.width / 2, canvas.height / 2);
+            ctx.restore();
+            auxText.innerText = "GAME PAUSED (Space)";
+            animationFrameId = requestAnimationFrame(runSnakeLoop);
+            return;
+        } else {
+            auxText.innerText = "Status: Arena Active";
+        }
+
+        if (keys['w'] && snakeCurrentDirection.y === 0) snakeTargetDirection = { x: 0, y: -1 };
+        if (keys['s'] && snakeCurrentDirection.y === 0) snakeTargetDirection = { x: 0, y: 1 };
+        if (keys['a'] && snakeCurrentDirection.x === 0) snakeTargetDirection = { x: -1, y: 0 };
+        if (keys['d'] && snakeCurrentDirection.x === 0) snakeTargetDirection = { x: 1, y: 0 };
+
+        snakeCurrentDirection = snakeTargetDirection;
+
+        let continuousVelocitySpeed = 3.2;
+        let originalHead = snakeBodyPoints[0];
+        
+        let dynamicNewHead = {
+            x: originalHead.x + snakeCurrentDirection.x * continuousVelocitySpeed,
+            y: originalHead.y + snakeCurrentDirection.y * continuousVelocitySpeed
+        };
+
+        if (dynamicNewHead.x < 0 || dynamicNewHead.x > canvas.width || dynamicNewHead.y < 0 || dynamicNewHead.y > canvas.height) {
+            triggerGameOver();
+            return;
+        }
+
+        for (let i = 15; i < snakeBodyPoints.length; i++) {
+            let segment = snakeBodyPoints[i];
+            let checkDistX = dynamicNewHead.x - segment.x;
+            let checkDistY = dynamicNewHead.y - segment.y;
+            if (Math.sqrt(checkDistX * checkDistX + checkDistY * checkDistY) < snakeBodyThickness * 0.75) {
+                triggerGameOver();
+                return;
+            }
+        }
+
+        snakeBodyPoints.unshift(dynamicNewHead);
+
+        let ax = dynamicNewHead.x - cyberApple.x;
+        let ay = dynamicNewHead.y - cyberApple.y;
+        let distanceToApple = Math.sqrt(ax * ax + ay * ay);
+
+        if (distanceToApple < (snakeBodyThickness + cyberAppleRadius)) {
+            playSound('score');
+            globalScore += 1; 
+            spawnCyberApple();
+            for (let e = 0; e < 12; e++) {
+                let lastIdx = snakeBodyPoints.length - 1;
+                snakeBodyPoints.push({ x: snakeBodyPoints[lastIdx].x, y: snakeBodyPoints[lastIdx].y });
+            }
+        } else {
+            snakeBodyPoints.pop();
+        }
+
+        ctx.fillStyle = "#0a2f1d";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        ctx.strokeStyle = "rgba(46, 213, 115, 0.04)";
+        ctx.lineWidth = 1;
+        let simpleStep = 25;
+        for (let i = 0; i < canvas.width; i += simpleStep) {
+            ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, canvas.height); ctx.stroke();
+        }
+        for (let j = 0; j < canvas.height; j += simpleStep) {
+            ctx.beginPath(); ctx.moveTo(0, j); ctx.lineTo(canvas.width, j); ctx.stroke();
+        }
+
+        ctx.save();
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = "#ff0055";
+        
+        ctx.beginPath();
+        ctx.arc(cyberApple.x, cyberApple.y, cyberAppleRadius, 0, Math.PI * 2);
+        ctx.fillStyle = "#ff0044";
+        ctx.fill();
+        
+        ctx.beginPath();
+        ctx.moveTo(cyberApple.x, cyberApple.y - cyberAppleRadius + 2);
+        ctx.quadraticCurveTo(cyberApple.x + 3, cyberApple.y - cyberAppleRadius - 6, cyberApple.x + 6, cyberApple.y - cyberAppleRadius - 8);
+        ctx.strokeStyle = "#8b5a2b";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        
+        ctx.beginPath();
+        ctx.ellipse(cyberApple.x + 7, cyberApple.y - cyberAppleRadius - 8, 4, 2, Math.PI / 4, 0, Math.PI * 2);
+        ctx.fillStyle = "#2ed573";
+        ctx.fill();
+        ctx.restore();
+
+        for (let i = snakeBodyPoints.length - 1; i >= 0; i--) {
+            let point = snakeBodyPoints[i];
+            let progressFraction = i / snakeBodyPoints.length;
+            let currentRadius = snakeBodyThickness * (1 - progressFraction * 0.55);
+
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(point.x, point.y, currentRadius, 0, Math.PI * 2);
+            
+            if (i === 0) {
+                ctx.fillStyle = "#ff0080"; 
+                ctx.shadowBlur = 12;
+                ctx.shadowColor = "#ff0080";
+                ctx.fill();
+
+                let eyeOffsetAngle = Math.atan2(snakeCurrentDirection.y, snakeCurrentDirection.x);
+                let leftEyeX = point.x + Math.cos(eyeOffsetAngle - 0.5) * (currentRadius * 0.6);
+                let leftEyeY = point.y + Math.sin(eyeOffsetAngle - 0.5) * (currentRadius * 0.6);
+                let rightEyeX = point.x + Math.cos(eyeOffsetAngle + 0.5) * (currentRadius * 0.6);
+                let rightEyeY = point.y + Math.sin(eyeOffsetAngle + 0.5) * (currentRadius * 0.6);
+
+                ctx.beginPath();
+                ctx.arc(leftEyeX, leftEyeY, 2.5, 0, Math.PI * 2);
+                ctx.arc(rightEyeX, rightEyeY, 2.5, 0, Math.PI * 2);
+                ctx.fillStyle = "#00ffff";
+                ctx.shadowBlur = 8;
+                ctx.shadowColor = "#00ffff";
+                ctx.fill();
+            } else {
+                ctx.fillStyle = "rgba(255, 0, 128, " + (1 - progressFraction * 0.7) + ")";
+                ctx.fill();
+            }
+            ctx.restore();
+        }
+
+        ctx.save();
+        ctx.fillStyle = '#ffffff';
+        ctx.font = "bold 14px sans-serif";
+        ctx.textAlign = "left";
+        ctx.fillText("SCORE: " + globalScore, 15, 25);
+        ctx.textAlign = "right";
+        ctx.fillText("HIGH: " + Math.max(snakeHighScore, globalScore), canvas.width - 15, 25);
+        ctx.restore();
+
+        animationFrameId = requestAnimationFrame(runSnakeLoop);
+    }
+
+
+    /* ========================================================================
+       ENGINE MODEL #3: FIREBOY & WATERGIRL (GRID RUNTIME & FRIV DESIGN FIX)
+       ======================================================================== */
+    let fireboy, watergirl, fwButton, fwGateActive;
+    let TILE_SIZE = 25; 
+    let MAP_COLS = 20;
+    let MAP_ROWS = 18;
+
+    // Legend Grid: 1=Solid Wall, 2=Lava Pool, 3=Water Pool, 4=Green Slime (Deadly to BOTH), 5=Fire Exit, 6=Water Exit
+    let fwGrid = [
+        [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+        [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,5,6,1],
+        [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1],
+        [1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,1,1,1,1],
+        [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+        [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+        [1,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,1],
+        [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+        [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+        [1,1,1,1,1,1,1,4,4,4,4,1,1,1,1,1,1,1,1,1],
+        [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+        [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+        [1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,1],
+        [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+        [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+        [1,0,0,0,0,2,2,2,0,0,0,0,3,3,3,0,0,0,0,1],
+        [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+        [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+    ];
+
+    function initFireWaterEngine() {
+        auxText.innerText = "Fireboy: Arrows | Watergirl: W,A,D | UPPER POOLS ARE DEADLY SLIME";
+        canvas.style.cursor = 'default';
+
+        fwButton = { row: 4, col: 3, pressed: false, x: 3 * TILE_SIZE + 5, y: 4 * TILE_SIZE + 18, w: 15, h: 7 };
+        fwGateActive = true;
+
+        fireboy = {
+            x: 40, y: 13 * TILE_SIZE, vx: 0, vy: 0, w: 16, h: 24,
+            grounded: false, color: '#ff4500'
+        };
+
+        watergirl = {
+            x: canvas.width - 60, y: 13 * TILE_SIZE, vx: 0, vy: 0, w: 16, h: 24,
+            grounded: false, color: '#00a8ff'
+        };
+
+        runFireWaterLoop();
+    }
+
+    function checkTileCollision(px, py, pw, ph) {
+        let startCol = Math.floor(px / TILE_SIZE);
+        let endCol = Math.floor((px + pw) / TILE_SIZE);
+        let startRow = Math.floor(py / TILE_SIZE);
+        let endRow = Math.floor((py + ph) / TILE_SIZE);
+
+        if (startCol < 0 || endCol >= MAP_COLS || startRow < 0 || endRow >= MAP_ROWS) return true;
+
+        for (let r = startRow; r <= endRow; r++) {
+            for (let c = startCol; c <= endCol; c++) {
+                if (fwGrid[r][c] === 1) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    function runFireWaterLoop() {
+        if (currentActiveGame !== 'firewater') return;
+
+        if (isPaused) {
+            ctx.save();
+            ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = "#ffcc00";
+            ctx.font = "bold 24px sans-serif";
+            ctx.textAlign = "center";
+            ctx.fillText("PAUSED", canvas.width / 2, canvas.height / 2);
+            ctx.restore();
+            animationFrameId = requestAnimationFrame(runFireWaterLoop);
+            return;
+        }
+
+        // CONTROL SCHEME INTERPRETATION
+        fireboy.vx = 0;
+        if (keys['arrowleft']) fireboy.vx = -2.5;
+        if (keys['arrowright']) fireboy.vx = 2.5;
+        if (keys['arrowup'] && fireboy.grounded) {
+            fireboy.vy = -7.2;
+            fireboy.grounded = false;
+        }
+
+        watergirl.vx = 0;
+        if (keys['a']) watergirl.vx = -2.5;
+        if (keys['d']) watergirl.vx = 2.5;
+        if (keys['w'] && watergirl.grounded) {
+            watergirl.vy = -7.2;
+            watergirl.grounded = false;
+        }
+
+        // PHYSICS EXECUTION LAYER (X AXIS)
+        [fireboy, watergirl].forEach(p => {
+            p.vy += 0.35; // Gravity acceleration
+            
+            p.x += p.vx;
+            if (checkTileCollision(p.x, p.y, p.w, p.h)) {
+                p.x -= p.vx;
+            }
+
+            p.y += p.vy;
+            p.grounded = false;
+            if (checkTileCollision(p.x, p.y, p.w, p.h)) {
+                if (p.vy > 0) { // Landing down onto a solid tile
+                    p.y = Math.floor(p.y / TILE_SIZE) * TILE_SIZE;
+                    while (checkTileCollision(p.x, p.y, p.w, p.h)) {
+                        p.y -= 1;
+                    }
+                    p.grounded = true;
+                    p.vy = 0;
+                } else if (p.vy < 0) { // Ceiling hit
+                    p.y = (Math.floor(p.y / TILE_SIZE) + 1) * TILE_SIZE;
+                    p.vy = 0;
+                }
+            }
+        });
+
+        // LIQUID SEGMENTATION SURFACE INTERACTION DETECTOR
+        let hazardTriggered = false;
+        let fireDoorSatisfied = false;
+        let waterDoorSatisfied = false;
+
+        [fireboy, watergirl].forEach(p => {
+            let centerCol = Math.floor((p.x + p.w / 2) / TILE_SIZE);
+            let feetRow = Math.floor((p.y + p.h - 2) / TILE_SIZE);
+
+            if (feetRow >= 0 && feetRow < MAP_ROWS && centerCol >= 0 && centerCol < MAP_COLS) {
+                let currentTile = fwGrid[feetRow][centerCol];
+                
+                if (currentTile === 4) hazardTriggered = true; // Green Slime kills both!
+                if (p === fireboy && currentTile === 3) hazardTriggered = true; // Water kills fireboy
+                if (p === watergirl && currentTile === 2) hazardTriggered = true; // Lava kills watergirl
+
+                if (p === fireboy && currentTile === 5) fireDoorSatisfied = true;
+                if (p === watergirl && currentTile === 6) waterDoorSatisfied = true;
+            }
+        });
+
+        if (hazardTriggered) {
+            triggerGameOver();
+            return;
+        }
+
+        if (fireDoorSatisfied && waterDoorSatisfied) {
+            triggerVictory();
+            return;
+        }
+
+        // DRAW GRAPHICS ENGINE CONTEXT
+        ctx.fillStyle = "#1e221a"; // Ancient Temple Mud Green tone
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // GRID TILES LOOP RENDERER
+        for (let r = 0; r < MAP_ROWS; r++) {
+            for (let c = 0; c < MAP_COLS; c++) {
+                let tileType = fwGrid[r][c];
+                let tx = c * TILE_SIZE;
+                let ty = r * TILE_SIZE;
+
+                if (tileType === 1) {
+                    // Mossy Forest Brick Texture Style
+                    ctx.fillStyle = "#4a5343";
+                    ctx.fillRect(tx, ty, TILE_SIZE, TILE_SIZE);
+                    ctx.strokeStyle = "#2c3327";
+                    ctx.lineWidth = 1.5;
+                    ctx.strokeRect(tx, ty, TILE_SIZE, TILE_SIZE);
+                    
+                    // Moss overlay line details
+                    ctx.fillStyle = "#63735a";
+                    ctx.fillRect(tx, ty, TILE_SIZE, 3);
+                } 
+                else if (tileType === 2) {
+                    // Lava fluid layer
+                    ctx.fillStyle = "#e64a19";
+                    ctx.fillRect(tx, ty + 10, TILE_SIZE, TILE_SIZE - 10);
+                    ctx.fillStyle = "#ffcc00";
+                    ctx.fillRect(tx, ty + 8, TILE_SIZE, 3);
+                } 
+                else if (tileType === 3) {
+                    // Water fluid layer
+                    ctx.fillStyle = "#00bcd4";
+                    ctx.fillRect(tx, ty + 10, TILE_SIZE, TILE_SIZE - 10);
+                    ctx.fillStyle = "#e0f7fa";
+                    ctx.fillRect(tx, ty + 8, TILE_SIZE, 3);
+                } 
+                else if (tileType === 4) {
+                    // Deadly Green Slime layer
+                    ctx.fillStyle = "#4caf50";
+                    ctx.fillRect(tx, ty + 10, TILE_SIZE, TILE_SIZE - 10);
+                    ctx.fillStyle = "#ccff33";
+                    ctx.fillRect(tx, ty + 8, TILE_SIZE, 3);
+                }
+                else if (tileType === 5) {
+                    // Fireboy Door silhouette
+                    ctx.strokeStyle = "#ff4500";
+                    ctx.lineWidth = 2;
+                    ctx.strokeRect(tx + 2, ty - TILE_SIZE, TILE_SIZE - 4, TILE_SIZE * 2);
+                    ctx.fillStyle = "rgba(255, 69, 0, 0.2)";
+                    ctx.fillRect(tx + 2, ty - TILE_SIZE, TILE_SIZE - 4, TILE_SIZE * 2);
+                }
+                else if (tileType === 6) {
+                    // Watergirl Door silhouette
+                    ctx.strokeStyle = "#00a8ff";
+                    ctx.lineWidth = 2;
+                    ctx.strokeRect(tx + 2, ty - TILE_SIZE, TILE_SIZE - 4, TILE_SIZE * 2);
+                    ctx.fillStyle = "rgba(0, 168, 255, 0.2)";
+                    ctx.fillRect(tx + 2, ty - TILE_SIZE, TILE_SIZE - 4, TILE_SIZE * 2);
+                }
+            }
+        }
+
+        // CHARACTERS RENDERING MANIFOLD
+        ctx.fillStyle = fireboy.color;
+        ctx.fillRect(fireboy.x, fireboy.y, fireboy.w, fireboy.h);
+        ctx.fillStyle = "#ffcc00"; // Fire crest haircut asset overlay
+        ctx.fillRect(fireboy.x + 2, fireboy.y - 3, fireboy.w - 4, 3);
+
+        ctx.fillStyle = watergirl.color;
+        ctx.fillRect(watergirl.x, watergirl.y, watergirl.w, watergirl.h);
+        ctx.fillStyle = "#e0f7fa"; // Water drop pony braids asset overlay
+        ctx.fillRect(watergirl.x + 3, watergirl.y + 4, watergirl.w - 6, 6);
+
+        animationFrameId = requestAnimationFrame(runFireWaterLoop);
+    }
+</script>
+</body>
+</html>
