@@ -1,685 +1,675 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta name="description" content="Play the ultimate Abox web games portal by Agrasan. High energy browser games.">
+    <meta name="keywords" content="Abox, Abox Portal, Abox Game, Agrasan, Agrasan Games, HTML Games">
+    <meta name="author" content="Agrasan">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Asteroids with Collectible Bombs</title>
+    <title>Abox Portal | Handcrafted HTML5 Experiences</title>
     <style>
-        body {
+        * {
             margin: 0;
             padding: 0;
-            background-color: #0b0b10;
-            color: #fff;
-            font-family: 'Courier New', Courier, monospace;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        body {
+            background-color: #0d0d11;
+            color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow-x: hidden;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* --- DASHBOARD PORTAL PORT LAYOUT --- */
+        #portal-hub {
+            width: 100%;
+            max-width: 900px;
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .portal-logo-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .portal-badge {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #00d2d3, #00a8ff);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            font-weight: 900;
+            color: #0d0d11;
+            box-shadow: 0 0 20px rgba(0, 210, 211, 0.4);
+            margin-bottom: 15px;
+        }
+
+        h1.portal-title {
+            font-size: 36px;
+            font-weight: 900;
+            letter-spacing: 4px;
+            color: #ffffff;
+        }
+
+        h1.portal-title span {
+            color: #00ffcc;
+            text-shadow: 0 0 10px rgba(0, 255, 204, 0.5);
+        }
+
+        .portal-subtitle {
+            color: #57606f;
+            font-size: 14px;
+            margin-top: 5px;
+            letter-spacing: 1px;
+        }
+
+        .games-grid {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 30px;
+            width: 100%;
+        }
+
+        .game-card {
+            width: 150px;
+            height: 150px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            min-height: 100vh;
-            overflow: hidden;
-            user-select: none;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            position: relative;
         }
 
-        #game-container {
+        .game-card.active:hover {
+            transform: translateY(-5px);
+            border-color: #00ffcc;
+            background: rgba(0, 255, 204, 0.03);
+            box-shadow: 0 10px 20px rgba(0, 255, 204, 0.05);
+        }
+
+        .game-card#card-dodger.active { border-color: rgba(0, 255, 204, 0.2); }
+        .game-card#card-snake.active { border-color: rgba(255, 0, 128, 0.2); }
+
+        .game-card#card-snake.active:hover {
+            border-color: #ff0080;
+            background: rgba(255, 0, 128, 0.03);
+            box-shadow: 0 10px 20px rgba(255, 0, 128, 0.05);
+        }
+
+        .game-card.disabled {
+            cursor: not-allowed;
+            opacity: 0.3;
+        }
+
+        .game-icon {
+            font-size: 36px;
+            margin-bottom: 15px;
+        }
+
+        .game-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #a4b0be;
+            letter-spacing: 0.5px;
+        }
+
+        /* --- THE IN-GAME VIEWPORT WRAPPER SYSTEM --- */
+        #game-runtime-container {
+            display: none;
+            width: 100%;
+            max-width: 500px; /* Expanded space boundary for larger view layouts */
+            flex-direction: column;
+            align-items: center;
+            padding: 20px 10px;
+        }
+
+        .game-navbar {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .nav-btn {
+            background-color: #1e272e;
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 8px 16px;
+            font-weight: bold;
+            border-radius: 6px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .nav-btn:hover { background-color: #2f3640; }
+        .nav-btn.close-btn { background-color: #ff4757; border: none; }
+        .nav-btn.close-btn:hover { background-color: #ff6b81; }
+
+        .nav-title {
+            font-weight: 800;
+            font-size: 18px;
+            letter-spacing: 1.5px;
+        }
+
+        #canvas-frame-box {
             position: relative;
-            box-shadow: 0 0 20px rgba(0, 255, 200, 0.2);
-            border-radius: 8px;
-            overflow: hidden;
-            background: #000;
+            width: 100%;
+            aspect-ratio: 1 / 1.25; /* Adjusted sizing aspect footprint */
+            background-color: #05050a;
+            border-radius: 6px;
         }
 
         canvas {
             display: block;
-            background: radial-gradient(circle, #111525 0%, #050508 100%);
-        }
-
-        /* UI Overlays */
-        .ui-layer {
-            position: absolute;
-            top: 0;
-            left: 0;
             width: 100%;
             height: 100%;
-            pointer-events: none;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            box-sizing: border-box;
-            padding: 15px;
         }
 
-        .stats-bar {
-            display: flex;
-            justify-content: space-between;
-            font-size: 18px;
-            font-weight: bold;
-            text-shadow: 0 0 5px #000;
-        }
-
-        .bombs-display {
-            color: #ff3366;
-            text-shadow: 0 0 8px rgba(255, 51, 102, 0.6);
-        }
-
-        /* Menu Overlays */
-        .overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
+        .telemetry-dashboard {
             width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.75);
             display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 10;
-        }
-
-        .overlay h1 {
-            font-size: 40px;
-            margin-bottom: 20px;
-            letter-spacing: 4px;
-        }
-
-        .overlay p {
-            font-size: 16px;
-            color: #888;
-            margin-bottom: 30px;
-        }
-
-        button {
-            background: transparent;
-            border: 2px solid #00ffcc;
-            color: #00ffcc;
-            padding: 12px 30px;
-            font-size: 18px;
-            font-family: inherit;
-            cursor: pointer;
-            border-radius: 4px;
-            transition: all 0.2s ease;
-            pointer-events: auto;
-        }
-
-        button:hover {
-            background: #00ffcc;
-            color: #000;
-            box-shadow: 0 0 15px #00ffcc;
-        }
-
-        .hidden {
-            display: none !important;
-        }
-
-        /* On-screen Controls for layout accessibility */
-        #controls {
-            margin-top: 15px;
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            justify-content: center;
-            max-width: 800px;
-        }
-
-        .btn-ctrl {
-            padding: 10px 20px;
+            justify-content: space-between;
+            padding: 12px 5px;
             font-size: 14px;
-            border-color: #555;
-            color: #ccc;
+            font-weight: bold;
+            color: #ffffff;
+            background: rgba(255,255,255,0.02);
+            border-radius: 6px;
+            margin-top: 10px;
         }
-        
-        .btn-bomb {
-            border-color: #ff3366;
-            color: #ff3366;
+
+        .score-box {
+            display: flex;
+            gap: 15px;
         }
-        .btn-bomb:hover {
-            background: #ff3366;
-            color: #000;
-            box-shadow: 0 0 15px #ff3366;
+        .score-box span { color: #00ffcc; }
+
+        /* --- GAME OVER INTERACTIVE OVERLAY SCREEN --- */
+        #gameover-overlay {
+            display: none;
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(5, 5, 10, 0.85);
+            z-index: 100;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
         }
+
+        #gameover-overlay h2 {
+            font-size: 32px;
+            font-weight: 900;
+            letter-spacing: 2px;
+            color: #ff4757;
+            margin-bottom: 20px;
+            text-shadow: 0 0 10px rgba(255, 71, 87, 0.4);
+        }
+
+        .overlay-actions {
+            display: flex;
+            gap: 15px;
+        }
+
+        .action-btn {
+            padding: 12px 24px;
+            font-weight: bold;
+            font-size: 14px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+        .action-btn:active { transform: scale(0.95); }
+
+        #btn-restart { background-color: #2ed573; color: #fff; }
+        #btn-quit { background-color: #747d8c; color: #fff; }
     </style>
 </head>
 <body>
 
-    <div id="game-container">
-        <canvas id="gameCanvas" width="800" height="550"></canvas>
-        
-        <div class="ui-layer">
-            <div class="stats-bar">
-                <div>SCORE: <span id="score-val">0</span></div>
-                <div class="bombs-display">BOMBS: <span id="bomb-val">1</span></div>
-                <div>LIVES: <span id="lives-val">3</span></div>
+    <div id="portal-hub">
+        <div class="portal-logo-container">
+            <div class="portal-badge">A</div>
+            <h1 class="portal-title">A<span>BOX</span></h1>
+            <div class="portal-subtitle">Handcrafted Classic Custom HTML5 Experiences</div>
+        </div>
+
+        <div class="games-grid">
+            <div class="game-card active" id="card-dodger" onclick="launchGame('dodger')">
+                <div class="game-icon">🚀</div>
+                <div class="game-label">Asteroid Dodger</div>
+            </div>
+
+            <div class="game-card active" id="card-snake" onclick="launchGame('snake')">
+                <div class="game-icon">🐍</div>
+                <div class="game-label">Cyber Snake</div>
+            </div>
+
+            <div class="game-card disabled">
+                <div class="game-icon">🤖</div>
+                <div class="game-label">Coming Soon</div>
             </div>
         </div>
+    </div>
 
-        <div id="start-overlay" class="overlay">
-            <h1 style="color: #00ffcc;">ASTEROIDS</h1>
-            <p>Collect glowing PINK BOMBS. Press 'B' to clear the map!</p>
-            <button id="start-btn">START GAME</button>
+    <div id="game-runtime-container">
+        <div class="game-navbar">
+            <button class="nav-btn" onclick="toggleFullscreen()">Fullscreen</button>
+            <div class="nav-title" id="navbar-header-text">GAME_TITLE</div>
+            <button class="nav-btn close-btn" onclick="exitToHub()">Close</button>
         </div>
 
-        <div id="pause-overlay" class="overlay hidden">
-            <h1 style="color: #ffcc00;">GAME PAUSED</h1>
-            <p>Press 'P' or click below to return to action</p>
-            <button id="resume-btn">RESUME</button>
+        <div id="canvas-frame-box">
+            <div id="gameover-overlay">
+                <h2>GAME OVER</h2>
+                <div class="overlay-actions">
+                    <button id="btn-restart" class="action-btn" onclick="restartCurrentGame()">Restart</button>
+                    <button id="btn-quit" class="action-btn" onclick="exitToHub()">Quit</button>
+                </div>
+            </div>
+            <canvas id="gameCanvas"></canvas>
         </div>
 
-        <div id="gameover-overlay" class="overlay hidden">
-            <h1 style="color: #ff3333;">GAME OVER</h1>
-            <p>Final Score: <span id="final-score">0</span></p>
-            <button id="restart-btn">PLAY AGAIN</button>
+        <div class="telemetry-dashboard">
+            <div class="score-box">
+                <div>Score: <span id="telemetry-score">0</span></div>
+                <div>High Score: <span id="telemetry-highscore">0</span></div>
+            </div>
+            <div id="telemetry-auxiliary">Status: Active</div>
         </div>
     </div>
 
-    <div id="controls">
-        <button class="btn-ctrl" id="ctrl-left">◀ Left</button>
-        <button class="btn-ctrl" id="ctrl-thrust">Thrust ▲</button>
-        <button class="btn-ctrl" id="ctrl-right">Right ▶</button>
-        <button class="btn-ctrl" id="ctrl-shoot" style="border-color:#00ffcc; color:#00ffcc;">Shoot (Space)</button>
-        <button class="btn-ctrl btn-bomb" id="ctrl-bomb">BOMB (B)</button>
-        <button class="btn-ctrl" id="ctrl-pause" style="border-color:#ffcc00; color:#ffcc00;">Pause (P)</button>
-    </div>
+<script>
+    const hubElement = document.getElementById('portal-hub');
+    const runtimeContainer = document.getElementById('game-runtime-container');
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
 
-    <script>
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
+    // UI elements tracking hooks
+    const titleText = document.getElementById('navbar-header-text');
+    const scoreText = document.getElementById('telemetry-score');
+    const highscoreText = document.getElementById('telemetry-highscore');
+    const auxText = document.getElementById('telemetry-auxiliary');
+    const borderBox = document.getElementById('canvas-frame-box');
+    const gameOverOverlay = document.getElementById('gameover-overlay');
 
-        // UI elements
-        const scoreVal = document.getElementById('score-val');
-        const bombVal = document.getElementById('bomb-val');
-        const livesVal = document.getElementById('lives-val');
-        const finalScore = document.getElementById('final-score');
+    let currentActiveGame = null;
+    let animationFrameId = null;
+    let loopSpeedIntervalId = null;
+
+    // Local Storage Space Profiles tracking parameters 
+    let highScores = {
+        dodger: 0,
+        snake: 0
+    };
+
+    function syncCanvasSizing() {
+        const rect = borderBox.getBoundingClientRect();
+        canvas.width = rect.width;
+        canvas.height = rect.height;
+    }
+    window.addEventListener('resize', () => { if (currentActiveGame) syncCanvasSizing(); });
+
+    function launchGame(gameKey) {
+        hubElement.style.display = 'none';
+        runtimeContainer.style.display = 'flex';
+        gameOverOverlay.style.display = 'none';
+        syncCanvasSizing();
         
-        const startOverlay = document.getElementById('start-overlay');
-        const pauseOverlay = document.getElementById('pause-overlay');
-        const gameoverOverlay = document.getElementById('gameover-overlay');
+        currentActiveGame = gameKey;
+        resetInputStates();
 
-        // Game Configuration constants
-        const FRICTION = 0.99;
-        const SHIP_TURN_SPEED = 0.06;
-        const SHIP_THRUST = 0.15;
-        const LASER_SPEED = 7;
-        const LASER_MAX_LIFE = 60; // frames
+        // Print historical high scores readout data parameters
+        highscoreText.innerText = highScores[gameKey];
 
-        // Game State Variables
-        let score = 0;
-        let lives = 3;
-        let bombs = 1;
-        let gameRunning = false;
-        let isPaused = false;
+        if (gameKey === 'dodger') {
+            titleText.innerText = "ASTEROID DODGER";
+            titleText.style.color = "#00ffcc";
+            borderBox.style.border = "2px solid #00ffcc";
+            auxText.style.color = "#ffcc00";
+            initDodgerEngine();
+        } else if (gameKey === 'snake') {
+            titleText.innerText = "CYBER SNAKE";
+            titleText.style.color = "#ff0080";
+            borderBox.style.border = "2px solid #ff0080";
+            auxText.style.color = "#00a8ff";
+            initSnakeEngine();
+        }
+    }
+
+    function triggerGameOver() {
+        if (animationFrameId) cancelAnimationFrame(animationFrameId);
+        if (loopSpeedIntervalId) clearInterval(loopSpeedIntervalId);
+        gameOverOverlay.style.display = 'flex';
+    }
+
+    function restartCurrentGame() {
+        gameOverOverlay.style.display = 'none';
+        resetInputStates();
+        if (currentActiveGame === 'dodger') initDodgerEngine();
+        if (currentActiveGame === 'snake') initSnakeEngine();
+    }
+
+    function exitToHub() {
+        currentActiveGame = null;
+        if (animationFrameId) cancelAnimationFrame(animationFrameId);
+        if (loopSpeedIntervalId) clearInterval(loopSpeedIntervalId);
         
-        let ship;
-        let lasers = [];
-        let asteroids = [];
-        let collectibleBombs = [];
-        let shockwaves = [];
-        let particles = [];
-        
-        let keys = {};
-        let spawnTimer = 0;
+        gameOverOverlay.style.display = 'none';
+        runtimeContainer.style.display = 'none';
+        hubElement.style.display = 'flex';
+    }
 
-        // --- Ship Setup ---
-        function createShip() {
-            return {
-                x: canvas.width / 2,
-                y: canvas.height / 2,
-                r: 12,
-                angle: -Math.PI / 2,
-                velocity: { x: 0, y: 0 },
-                thrusting: false,
-                invulnerable: 120 // frames of spawn safety
-            };
+    function toggleFullscreen() {
+        if (!document.fullscreenElement) {
+            borderBox.requestFullscreen().catch(err => alert("Fullscreen error: " + err.message));
+        } else {
+            document.exitFullscreen();
         }
+    }
 
-        // --- Event Listeners ---
-        window.addEventListener('keydown', (e) => {
-            if (e.code === 'Space' || e.code === 'KeyP' || e.code === 'KeyB') {
-                e.preventDefault(); // Stop page scrolling
-            }
-            keys[e.code] = true;
+    // Input Engine Event Tracking Parsers
+    let keys = {};
+    window.addEventListener('keydown', (e) => { keys[e.key.toLowerCase()] = true; });
+    window.addEventListener('keyup', (e) => { keys[e.key.toLowerCase()] = false; });
+    
+    function resetInputStates() { keys = {}; }
 
-            // Instant triggers on key down
-            if (gameRunning) {
-                if (e.code === 'KeyP') togglePause();
-                if (e.code === 'KeyB' && !isPaused) triggerSmartBomb();
-                if (e.code === 'Space' && !isPaused) fireLaser();
-            }
-        });
 
-        window.addEventListener('keyup', (e) => {
-            keys[e.code] = false;
-        });
+    /* ========================================================================
+       ENGINE MODEL #1: ASTEROID DODGER
+       ======================================================================== */
+    let dodgerPlayer, dodgerAsteroids, dodgerStars, dodgerScore, dodgerBombs;
 
-        // UI Buttons Mapping
-        document.getElementById('start-btn').addEventListener('click', startGame);
-        document.getElementById('resume-btn').addEventListener('click', togglePause);
-        document.getElementById('restart-btn').addEventListener('click', startGame);
-        document.getElementById('ctrl-pause').addEventListener('click', () => { if(gameRunning) togglePause(); });
-        document.getElementById('ctrl-bomb').addEventListener('click', () => { if(gameRunning && !isPaused) triggerSmartBomb(); });
-        document.getElementById('ctrl-shoot').addEventListener('click', () => { if(gameRunning && !isPaused) fireLaser(); });
+    function initDodgerEngine() {
+        dodgerScore = 0;
+        dodgerBombs = 1;
+        scoreText.innerText = dodgerScore;
+        highscoreText.innerText = highScores.dodger;
+        auxText.innerText = "Bombs: " + dodgerBombs + " (Space)";
 
-        // Touch/Click Hold Controls for Moving
-        setupHoldButton('ctrl-left', 'KeyA');
-        setupHoldButton('ctrl-right', 'KeyD');
-        setupHoldButton('ctrl-thrust', 'KeyW');
+        dodgerPlayer = {
+            x: canvas.width / 2,
+            y: canvas.height * 0.8,
+            radius: 12,
+            speed: 5
+        };
 
-        function setupHoldButton(elementId, simulatedKey) {
-            const btn = document.getElementById(elementId);
-            const startAction = (e) => { e.preventDefault(); keys[simulatedKey] = true; };
-            const endAction = (e) => { e.preventDefault(); keys[simulatedKey] = false; };
-            
-            btn.addEventListener('mousedown', startAction);
-            btn.addEventListener('mouseup', endAction);
-            btn.addEventListener('touchstart', startAction);
-            btn.addEventListener('touchend', endAction);
-        }
-
-        // --- Game Flow Control ---
-        function startGame() {
-            score = 0;
-            lives = 3;
-            bombs = 1;
-            asteroids = [];
-            lasers = [];
-            collectibleBombs = [];
-            shockwaves = [];
-            particles = [];
-            
-            ship = createShip();
-            
-            // Spawn initial generation of large Asteroids
-            for (let i = 0; i < 4; i++) {
-                spawnAsteroid();
-            }
-
-            updateHUD();
-            startOverlay.classList.add('hidden');
-            gameoverOverlay.classList.add('hidden');
-            pauseOverlay.classList.add('hidden');
-            
-            isPaused = false;
-            gameRunning = true;
-        }
-
-        function togglePause() {
-            isPaused = !isPaused;
-            if (isPaused) {
-                pauseOverlay.classList.remove('hidden');
-            } else {
-                pauseOverlay.classList.add('hidden');
-            }
-        }
-
-        function gameOver() {
-            gameRunning = false;
-            finalScore.innerText = score;
-            gameoverOverlay.classList.remove('hidden');
-        }
-
-        function updateHUD() {
-            scoreVal.innerText = score;
-            bombVal.innerText = bombs;
-            livesVal.innerText = lives;
-        }
-
-        // --- Object Creators ---
-        function spawnAsteroid(x, y, tier = 3) {
-            // Tier 3 = Large, Tier 2 = Medium, Tier 1 = Small
-            let astX = x !== undefined ? x : Math.random() * canvas.width;
-            let astY = y !== undefined ? y : Math.random() * canvas.height;
-            
-            // Avoid spawning directly on top of center ship when starting
-            if (x === undefined && ship) {
-                let dist = Math.hypot(astX - ship.x, astY - ship.y);
-                if (dist < 100) { astX += 150; astY += 150; }
-            }
-
-            const angles = Math.floor(Math.random() * 4) + 8; // Vertices shape
-            const offsets = [];
-            for (let i = 0; i < angles; i++) {
-                offsets.push(Math.random() * 0.4 + 0.8);
-            }
-
-            asteroids.push({
-                x: astX,
-                y: astY,
-                tier: tier,
-                r: tier * 15,
-                velocity: {
-                    x: (Math.random() - 0.5) * (4 - tier + 1),
-                    y: (Math.random() - 0.5) * (4 - tier + 1)
-                },
-                angle: Math.random() * Math.PI * 2,
-                rotSpeed: (Math.random() - 0.5) * 0.02,
-                offsets: offsets
+        dodgerAsteroids = [];
+        dodgerStars = [];
+        for (let i = 0; i < 40; i++) {
+            dodgerStars.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                size: Math.random() * 1.5,
+                speed: Math.random() * 0.5 + 0.2
             });
         }
 
-        function spawnCollectibleBomb() {
-            collectibleBombs.push({
-                x: Math.random() * (canvas.width - 40) + 20,
-                y: Math.random() * (canvas.height - 40) + 20,
-                r: 10,
-                pulse: 0,
-                life: 600 // Disappears after 10 seconds if not grabbed
-            });
-        }
-
-        function fireLaser() {
-            lasers.push({
-                x: ship.x + Math.cos(ship.angle) * ship.r,
-                y: ship.y + Math.sin(ship.angle) * ship.r,
-                vx: Math.cos(ship.angle) * LASER_SPEED + ship.velocity.x * 0.5,
-                vy: Math.sin(ship.angle) * LASER_SPEED + ship.velocity.y * 0.5,
-                life: 0
-            });
-        }
-
-        function triggerSmartBomb() {
-            if (bombs <= 0) return;
-            bombs--;
-            updateHUD();
-
-            // Setup shockwave physics center frame
-            shockwaves.push({
-                x: ship.x,
-                y: ship.y,
-                r: 10,
-                maxR: Math.hypot(canvas.width, canvas.height), 
-                speed: 15
-            });
-
-            // Handle mass destruction mechanics
-            asteroids.forEach(ast => {
-                score += (4 - ast.tier) * 5; // Give partial score points
-                createExplosion(ast.x, ast.y, '#ffffff', ast.r);
-            });
-            asteroids = []; // Clear current elements
-        }
-
-        function createExplosion(x, y, color, count = 8) {
-            for (let i = 0; i < count; i++) {
-                particles.push({
-                    x: x, y: y,
-                    vx: (Math.random() - 0.5) * 5,
-                    vy: (Math.random() - 0.5) * 5,
-                    life: 30 + Math.random() * 20,
-                    color: color
+        if (loopSpeedIntervalId) clearInterval(loopSpeedIntervalId);
+        loopSpeedIntervalId = setInterval(() => {
+            if (currentActiveGame !== 'dodger') return;
+            if (dodgerAsteroids.length < 8) {
+                dodgerAsteroids.push({
+                    x: Math.random() * canvas.width,
+                    y: -20,
+                    radius: Math.random() * 15 + 8,
+                    speed: Math.random() * 2 + 1.5
                 });
             }
+        }, 900);
+
+        runDodgerLoop();
+    }
+
+    function runDodgerLoop() {
+        if (currentActiveGame !== 'dodger') return;
+
+        if (keys['a'] || keys['arrowleft']) dodgerPlayer.x -= dodgerPlayer.speed;
+        if (keys['d'] || keys['arrowright']) dodgerPlayer.x += dodgerPlayer.speed;
+        if (keys['w'] || keys['arrowup']) dodgerPlayer.y -= dodgerPlayer.speed;
+        if (keys['s'] || keys['arrowdown']) dodgerPlayer.y += dodgerPlayer.speed;
+
+        if (keys[' '] && dodgerBombs > 0) {
+            dodgerBombs--;
+            dodgerAsteroids = [];
+            dodgerScore += 10;
+            scoreText.innerText = dodgerScore;
+            
+            if(dodgerScore > highScores.dodger) {
+                highScores.dodger = dodgerScore;
+                highscoreText.innerText = highScores.dodger;
+            }
+            auxText.innerText = "Bombs: " + dodgerBombs + " (Space)";
+            keys[' '] = false;
         }
 
-        // --- Core Physics Engine & Update Routines ---
-        function update() {
-            if (!gameRunning || isPaused) return;
+        // Keep inside window area
+        if (dodgerPlayer.x < dodgerPlayer.radius) dodgerPlayer.x = dodgerPlayer.radius;
+        if (dodgerPlayer.x > canvas.width - dodgerPlayer.radius) dodgerPlayer.x = canvas.width - dodgerPlayer.radius;
+        if (dodgerPlayer.y < dodgerPlayer.radius) dodgerPlayer.y = dodgerPlayer.radius;
+        if (dodgerPlayer.y > canvas.height - dodgerPlayer.radius) dodgerPlayer.y = canvas.height - dodgerPlayer.radius;
 
-            // 1. Ship Movement Logic
-            if (keys['KeyW'] || keys['ArrowUp']) {
-                ship.velocity.x += Math.cos(ship.angle) * SHIP_THRUST;
-                ship.velocity.y += Math.sin(ship.angle) * SHIP_THRUST;
-                ship.thrusting = true;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        ctx.fillStyle = "rgba(255,255,255,0.4)";
+        dodgerStars.forEach(star => {
+            star.y += star.speed;
+            if (star.y > canvas.height) star.y = 0;
+            ctx.fillRect(star.x, star.y, star.size, star.size);
+        });
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(dodgerPlayer.x, dodgerPlayer.y - dodgerPlayer.radius * 1.3);
+        ctx.lineTo(dodgerPlayer.x - dodgerPlayer.radius * 1.1, dodgerPlayer.y + dodgerPlayer.radius);
+        ctx.lineTo(dodgerPlayer.x + dodgerPlayer.radius * 1.1, dodgerPlayer.y + dodgerPlayer.radius);
+        ctx.closePath();
+        ctx.fillStyle = '#00ffcc';
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = '#00ffcc';
+        ctx.fill();
+        ctx.restore();
+
+        ctx.fillStyle = '#e61e4f';
+        for (let i = dodgerAsteroids.length - 1; i >= 0; i--) {
+            let a = dodgerAsteroids[i];
+            a.y += a.speed;
+
+            ctx.beginPath();
+            ctx.arc(a.x, a.y, a.radius, 0, Math.PI * 2);
+            ctx.fill();
+
+            if (a.y > canvas.height + 20) {
+                dodgerAsteroids.splice(i, 1);
+                dodgerScore++;
+                scoreText.innerText = dodgerScore;
+
+                if(dodgerScore > highScores.dodger) {
+                    highScores.dodger = dodgerScore;
+                    highscoreText.innerText = highScores.dodger;
+                }
+                if (dodgerScore % 25 === 0) {
+                    dodgerBombs++;
+                    auxText.innerText = "Bombs: " + dodgerBombs + " (Space)";
+                }
+                continue;
+            }
+
+            let dx = dodgerPlayer.x - a.x;
+            let dy = dodgerPlayer.y - a.y;
+            let dist = Math.sqrt(dx*dx + dy*dy);
+            if (dist < dodgerPlayer.radius + a.radius) {
+                triggerGameOver(); // Launches interactive failure overlay screen
+                return;
+            }
+        }
+
+        animationFrameId = requestAnimationFrame(runDodgerLoop);
+    }
+
+
+    /* ========================================================================
+       ENGINE MODEL #2: CYBER SNAKE (BIG MAP & CONTROLLED SPEED EDITION)
+       ======================================================================== */
+    let snake, snakeDirection, nextDirection, snakeFood, snakeScore, gridSize, tileCountX, tileCountY, snakeSpeedTimer;
+
+    function initSnakeEngine() {
+        snakeScore = 0;
+        scoreText.innerText = snakeScore;
+        highscoreText.innerText = highScores.snake;
+        auxText.innerText = "Status: Grid Active";
+
+        // REDUCED BLOCK SIZE FOR LARGER MAP MATRIX TILES COUNT
+        gridSize = 15; 
+        tileCountX = Math.floor(canvas.width / gridSize);
+        tileCountY = Math.floor(canvas.height / gridSize);
+
+        let startX = Math.floor(tileCountX / 2);
+        let startY = Math.floor(tileCountY / 2);
+
+        snake = [
+            { x: startX, y: startY },
+            { x: startX, y: startY + 1 },
+            { x: startX, y: startY + 2 }
+        ];
+
+        snakeDirection = { x: 0, y: -1 }; 
+        nextDirection = { x: 0, y: -1 };
+
+        spawnSnakeFood();
+        
+        snakeSpeedTimer = 0;
+        if (loopSpeedIntervalId) clearInterval(loopSpeedIntervalId);
+        
+        runSnakeLoop();
+    }
+
+    function spawnSnakeFood() {
+        snakeFood = {
+            x: Math.floor(Math.random() * tileCountX),
+            y: Math.floor(Math.random() * tileCountY)
+        };
+        for (let cell of snake) {
+            if (cell.x === snakeFood.x && cell.y === snakeFood.y) {
+                spawnSnakeFood();
+                break;
+            }
+        }
+    }
+
+    function runSnakeLoop() {
+        if (currentActiveGame !== 'snake') return;
+
+        // Precise input parsing tracking
+        if ((keys['w'] || keys['arrowup']) && snakeDirection.y === 0) nextDirection = { x: 0, y: -1 };
+        if ((keys['s'] || keys['arrowdown']) && snakeDirection.y === 0) nextDirection = { x: 0, y: 1 };
+        if ((keys['a'] || keys['arrowleft']) && snakeDirection.x === 0) nextDirection = { x: -1, y: 0 };
+        if ((keys['d'] || keys['arrowright']) && snakeDirection.x === 0) nextDirection = { x: 1, y: 0 };
+
+        snakeSpeedTimer++;
+        // INCREASED TICK COEFFICIENT DELAY (7 -> 11) TO CONTROL AND SLOW DOWN THE SPEED PERMANENTLY
+        if (snakeSpeedTimer >= 11) { 
+            snakeSpeedTimer = 0;
+
+            snakeDirection = nextDirection;
+            
+            let head = { 
+                x: snake[0].x + snakeDirection.x, 
+                y: snake[0].y + snakeDirection.y 
+            };
+
+            // SOLID EDGE DETECTION: Touching border triggers Game Over instantly
+            if (head.x < 0 || head.x >= tileCountX || head.y < 0 || head.y >= tileCountY) {
+                triggerGameOver();
+                return;
+            }
+
+            // Body crash check
+            for (let cell of snake) {
+                if (head.x === cell.x && head.y === cell.y) {
+                    triggerGameOver();
+                    return;
+                }
+            }
+
+            snake.unshift(head);
+
+            if (head.x === snakeFood.x && head.y === snakeFood.y) {
+                snakeScore += 10;
+                scoreText.innerText = snakeScore;
+                
+                if(snakeScore > highScores.snake) {
+                    highScores.snake = snakeScore;
+                    highscoreText.innerText = highScores.snake;
+                }
+                spawnSnakeFood();
             } else {
-                ship.thrusting = false;
-            }
-
-            if (keys['KeyA'] || keys['ArrowLeft']) ship.angle -= SHIP_TURN_SPEED;
-            if (keys['KeyD'] || keys['ArrowRight']) ship.angle += SHIP_TURN_SPEED;
-
-            ship.velocity.x *= FRICTION;
-            ship.velocity.y *= FRICTION;
-            ship.x += ship.velocity.x;
-            ship.y += ship.velocity.y;
-
-            // Wrap space coordinates borders
-            if (ship.x < -ship.r) ship.x = canvas.width + ship.r;
-            if (ship.x > canvas.width + ship.r) ship.x = -ship.r;
-            if (ship.y < -ship.r) ship.y = canvas.height + ship.r;
-            if (ship.y > canvas.height + ship.r) ship.y = -ship.r;
-
-            if (ship.invulnerable > 0) ship.invulnerable--;
-
-            // 2. Lasers Tracking
-            for (let i = lasers.length - 1; i >= 0; i--) {
-                let l = lasers[i];
-                l.x += l.vx;
-                l.y += l.vy;
-                l.life++;
-
-                // Wrap laser field boundary coordinates
-                if (l.x < 0) l.x = canvas.width;
-                if (l.x > canvas.width) l.x = 0;
-                if (l.y < 0) l.y = canvas.height;
-                if (l.y > canvas.height) l.y = 0;
-
-                if (l.life > LASER_MAX_LIFE) {
-                    lasers.splice(i, 1);
-                }
-            }
-
-            // 3. Asteroids Tracking
-            asteroids.forEach(ast => {
-                ast.x += ast.velocity.x;
-                ast.y += ast.velocity.y;
-                ast.angle += ast.rotSpeed;
-
-                if (ast.x < -ast.r) ast.x = canvas.width + ast.r;
-                if (ast.x > canvas.width + ast.r) ast.x = -ast.r;
-                if (ast.y < -ast.r) ast.y = canvas.height + ast.r;
-                if (ast.y > canvas.height + ast.r) ast.y = -ast.r;
-            });
-
-            // 4. Collectible Items Handling
-            for (let i = collectibleBombs.length - 1; i >= 0; i--) {
-                let cb = collectibleBombs[i];
-                cb.life--;
-                cb.pulse += 0.1;
-
-                // Check collision detection against Player
-                let dist = Math.hypot(cb.x - ship.x, cb.y - ship.y);
-                if (dist < cb.r + ship.r) {
-                    bombs++;
-                    createExplosion(cb.x, cb.y, '#ff3366', 15);
-                    updateHUD();
-                    collectibleBombs.splice(i, 1);
-                    continue;
-                }
-
-                if (cb.life <= 0) collectibleBombs.splice(i, 1);
-            }
-
-            // 5. Shockwaves Processing
-            for (let i = shockwaves.length - 1; i >= 0; i--) {
-                let sw = shockwaves[i];
-                sw.r += sw.speed;
-                if (sw.r > sw.maxR) {
-                    shockwaves.splice(i, 1);
-                }
-            }
-
-            // 6. Impact Collisions Evaluation Engine
-            // Lasers hitting Asteroids
-            for (let a = asteroids.length - 1; a >= 0; a--) {
-                for (let l = lasers.length - 1; l >= 0; l--) {
-                    let dist = Math.hypot(asteroids[a].x - lasers[l].x, asteroids[a].y - lasers[l].y);
-                    if (dist < asteroids[a].r) {
-                        createExplosion(asteroids[a].x, asteroids[a].y, '#aaaaaa', asteroids[a].tier * 5);
-                        breakAsteroid(a);
-                        lasers.splice(l, 1);
-                        break;
-                    }
-                }
-            }
-
-            // Asteroids hitting Ship
-            if (ship.invulnerable <= 0) {
-                for (let a = 0; a < asteroids.length; a++) {
-                    let dist = Math.hypot(asteroids[a].x - ship.x, asteroids[a].y - ship.y);
-                    if (dist < asteroids[a].r + ship.r) {
-                        createExplosion(ship.x, ship.y, '#ff5500', 30);
-                        lives--;
-                        updateHUD();
-                        if (lives <= 0) {
-                            gameOver();
-                        } else {
-                            ship = createShip();
-                        }
-                        break;
-                    }
-                }
-            }
-
-            // 7. Background Particles Sparkle
-            for (let i = particles.length - 1; i >= 0; i--) {
-                let p = particles[i];
-                p.x += p.vx;
-                p.y += p.vy;
-                p.life--;
-                if (p.life <= 0) particles.splice(i, 1);
-            }
-
-            // 8. Systems Random Generators Spawning
-            spawnTimer++;
-            if (spawnTimer % 400 === 0) { // Spawn new standard outer asteroid
-                spawnAsteroid();
-            }
-            if (spawnTimer % 700 === 0) { // Drop bomb unit chance item
-                spawnCollectibleBomb();
+                snake.pop();
             }
         }
 
-        function breakAsteroid(index) {
-            let ast = asteroids[index];
-            score += (4 - ast.tier) * 10;
-            updateHUD();
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            if (ast.tier > 1) {
-                // Split mechanics into 2 lower entities
-                spawnAsteroid(ast.x, ast.y, ast.tier - 1);
-                spawnAsteroid(ast.x, ast.y, ast.tier - 1);
+        // Tech Grid Background guidelines
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.015)";
+        ctx.lineWidth = 1;
+        for (let i = 0; i < tileCountX; i++) {
+            ctx.beginPath(); ctx.moveTo(i * gridSize, 0); ctx.lineTo(i * gridSize, canvas.height); ctx.stroke();
+        }
+        for (let j = 0; j < tileCountY; j++) {
+            ctx.beginPath(); ctx.moveTo(0, j * gridSize); ctx.lineTo(canvas.width, j * gridSize); ctx.stroke();
+        }
+
+        // Food core
+        ctx.save();
+        ctx.fillStyle = "#ff0055";
+        ctx.shadowBlur = 12;
+        ctx.shadowColor = "#ff0055";
+        ctx.fillRect(snakeFood.x * gridSize + 2, snakeFood.y * gridSize + 2, gridSize - 4, gridSize - 4);
+        ctx.restore();
+
+        // Shifting snake tail rendering loops
+        snake.forEach((cell, index) => {
+            ctx.save();
+            if (index === 0) {
+                ctx.fillStyle = "#ff0080"; 
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = "#ff0080";
+            } else {
+                ctx.fillStyle = "rgba(255, 0, 128, " + (1 - (index / snake.length) * 0.6) + ")";
             }
-            asteroids.splice(index, 1);
-        }
+            ctx.fillRect(cell.x * gridSize + 1, cell.y * gridSize + 1, gridSize - 2, gridSize - 2);
+            ctx.restore();
+        });
 
-        // --- Canvas Rendering Pipeline Engine ---
-        function draw() {
-            // Clear Frame
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            // Draw Background Sparkle Particles
-            particles.forEach(p => {
-                ctx.fillStyle = p.color;
-                ctx.globalAlpha = p.life / 50;
-                ctx.fillRect(p.x, p.y, 2, 2);
-            });
-            ctx.globalAlpha = 1.0; // Reset
-
-            // Draw Collectible Item Units
-            collectibleBombs.forEach(cb => {
-                ctx.save();
-                ctx.translate(cb.x, cb.y);
-                
-                // Outer glowing pulse ring
-                let glowSize = cb.r + Math.sin(cb.pulse) * 4;
-                ctx.strokeStyle = 'rgba(255, 51, 102, 0.4)';
-                ctx.lineWidth = 2;
-                ctx.beginPath();
-                ctx.arc(0, 0, glowSize, 0, Math.PI * 2);
-                ctx.stroke();
-
-                // Core Unit Icon
-                ctx.fillStyle = '#ff3366';
-                ctx.beginPath();
-                ctx.arc(0, 0, 6, 0, Math.PI * 2);
-                ctx.fill();
-                
-                // Details
-                ctx.fillStyle = '#ffffff';
-                ctx.fillRect(-2, -2, 4, 4);
-                ctx.restore();
-            });
-
-            // Draw Lasers
-            ctx.fillStyle = '#00ffcc';
-            lasers.forEach(l => {
-                ctx.beginPath();
-                ctx.arc(l.x, l.y, 2, 0, Math.PI * 2);
-                ctx.fill();
-            });
-
-            // Draw Ship
-            if (gameRunning) {
-                ctx.save();
-                ctx.translate(ship.x, ship.y);
-                ctx.rotate(ship.angle);
-
-                // Flickering safety shield look when invulnerable
-                if (ship.invulnerable === 0 || Math.floor(ship.invulnerable / 4) % 2 === 0) {
-                    ctx.strokeStyle = '#fff';
-                    ctx.lineWidth = 2;
-                    ctx.beginPath();
-                    ctx.moveTo(ship.r, 0);
-                    ctx.lineTo(-ship.r, -ship.r * 0.8);
-                    ctx.lineTo(-ship.r * 0.5, 0);
-                    ctx.lineTo(-ship.r, ship.r * 0.8);
-                    ctx.closePath();
-                    ctx.stroke();
-
-                    // Thruster plume flame
-                    if (ship.thrusting && Math.random() > 0.3) {
-                        ctx.strokeStyle = '#ffcc00';
-                        ctx.beginPath();
-                        ctx.moveTo(-ship.r * 0.6, 0);
-                        ctx.lineTo(-ship.r * 1.5, -ship.r * 0.3);
-                        ctx.lineTo(-ship.r * 2, 0);
-                        ctx.lineTo(-ship.r * 1.5, ship.r * 0.3);
-                        ctx.closePath();
-                        ctx.stroke();
-                    }
-                }
-                ctx.restore();
-            }
-
-            // Draw Asteroids Complex Polygons
-            asteroids.forEach(ast => {
-                ctx.save();
-                ctx.translate(ast.x, ast.y);
-                ctx.rotate(ast.angle);
-                ctx.strokeStyle = '#e0e0e0';
-                ctx.lineWidth = 2;
-                
-                ctx.beginPath();
-                for (let i = 0; i < ast.offsets.length; i++) {
-                    let angle = (i / ast.offsets.length) * Math.PI * 2;
-                    let r = ast.r * ast.offsets[i];
-                    let currX = Math.cos(angle) * r;
-                    let currY = Math.sin(angle) * r;
-                    if (i === 0) ctx.moveTo(currX, currY);
-                    else ctx.lineTo(currX, currY);
-                }
-                ctx.closePath();
-                ctx.stroke();
-                ctx.restore();
-            });
-
-            // Draw Expanding Weapon Shockwaves Matrix
-            shockwaves.forEach(sw => {
-                ctx.strokeStyle = 'rgba(255, 51, 102, 0.6)';
-                ctx.lineWidth = 6;
-                ctx.beginPath();
-                ctx.arc(sw.x, sw.y, sw.r, 0, Math.PI * 2);
-                ctx.stroke();
-            });
-        }
-
-        // --- Core Run-Loop Handle ---
-        function loop() {
-            update();
-            draw();
-            requestAnimationFrame(loop);
-        }
-
-        // Initialize display components on script launch
-        loop();
-    </script>
+        animationFrameId = requestAnimationFrame(runSnakeLoop);
+    }
+</script>
 </body>
 </html>
